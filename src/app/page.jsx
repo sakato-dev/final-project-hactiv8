@@ -14,12 +14,7 @@ export default function Home() {
         >
           register admin
         </Link>
-        <Link
-          href="/auth/register-customer"
-          className="p-2 bg-blue-500 text-white"
-        >
-          register customer
-        </Link>
+        <Link href="/auth/register-customer">register customer</Link>
       </div>
     </div>
   );

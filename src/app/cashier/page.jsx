@@ -13,6 +13,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { useAuth } from "@/contexts/auth-context";
+import { Html5QrcodeScanner } from "html5-qrcode";
 
 const POINTS_CONVERSION_RATE = 1000;
 

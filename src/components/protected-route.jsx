@@ -13,10 +13,10 @@ export default function ProtectedRoute({ children }) {
       router.push("/auth/login");
     } else if (userProfile.role === "customer") {
       router.push("/customer");
-    } else if (userProfile.role === "admin") {
-      router.push("/admin");
     } else if (userProfile.role === "cashier") {
       router.push("/cashier");
+    } else if (userProfile.role === "admin") {
+      router.push("/admin");
     }
   }, [currentUser, router]);
 

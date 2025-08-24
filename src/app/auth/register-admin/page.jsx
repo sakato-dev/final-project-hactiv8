@@ -26,6 +26,7 @@ export default function RegisterAdmin() {
       await setDoc(doc(db, "users", user.uid), {
         email: user.email,
         role: "admin",
+        uid: user.uid,
       });
 
       router.push("/admin");

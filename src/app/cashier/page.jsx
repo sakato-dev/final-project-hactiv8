@@ -9,10 +9,11 @@ import {
   updateDoc,
   increment,
   serverTimestamp,
+  getDoc,
+  setDoc,
 } from "firebase/firestore";
 import { useAuth } from "@/contexts/auth-context";
 
-// Asumsi: 1 poin untuk setiap pembelanjaan Rp 1.000
 const POINTS_CONVERSION_RATE = 1000;
 
 export default function KasirHome() {
@@ -43,19 +44,53 @@ export default function KasirHome() {
     setSuccess("");
 
     try {
+      if (!userProfile || !userProfile.merchantId) {
+        throw new Error("ID Toko untuk kasir ini tidak ditemukan.");
+      }
+
+      const merchantId = userProfile.merchantId;
+
+      // 1. Buat data transaksi
       const transactionData = {
         cashierId: auth.currentUser.uid,
         customerId: customerId.trim(),
+        merchantId: merchantId,
         amount: Number(amount),
         pointsAwarded: points,
         createdAt: serverTimestamp(),
       };
       await addDoc(collection(db, "transactions"), transactionData);
 
-      const customerDocRef = doc(db, "users", customerId.trim());
-      await updateDoc(customerDocRef, {
-        points: increment(points),
-      });
+      // 2. Perbarui poin di sub-koleksi 'memberships' pelanggan
+      const membershipDocRef = doc(
+        db,
+        "users",
+        customerId.trim(),
+        "memberships",
+        merchantId
+      );
+      const membershipDoc = await getDoc(membershipDocRef);
+
+      if (membershipDoc.exists()) {
+        // Jika sudah jadi member, update poinnya
+        await updateDoc(membershipDocRef, {
+          points: increment(points),
+        });
+      } else {
+        // Jika belum jadi member, buat dokumen keanggotaan baru
+        const merchantDocRef = doc(db, "merchants", merchantId);
+        const merchantDoc = await getDoc(merchantDocRef);
+        const merchantName = merchantDoc.exists()
+          ? merchantDoc.data().name
+          : "Toko";
+
+        await setDoc(membershipDocRef, {
+          merchantId: merchantId,
+          merchantName: merchantName,
+          points: points,
+          joinedAt: serverTimestamp(),
+        });
+      }
 
       setSuccess(
         `Transaksi berhasil! ${points} poin ditambahkan ke pelanggan.`
@@ -65,7 +100,9 @@ export default function KasirHome() {
       setPoints(0);
     } catch (err) {
       console.error("Error processing transaction:", err);
-      setError("Gagal memproses transaksi. Pastikan ID Pelanggan benar.");
+      setError(
+        err.message || "Gagal memproses transaksi. Pastikan ID Pelanggan benar."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -78,6 +115,7 @@ export default function KasirHome() {
   return (
     <ProtectedRoute>
       <div className="p-8 max-w-lg mx-auto">
+        {/* ... JSX lainnya tetap sama ... */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Halaman Kasir</h1>
           <button
@@ -90,10 +128,8 @@ export default function KasirHome() {
 
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">Buat Transaksi Baru</h2>
-          <p className="mb-4 text-sm text-gray-600">
-            Asumsi: 1 Poin = Rp {POINTS_CONVERSION_RATE}
-          </p>
           <form onSubmit={handleTransaction} className="space-y-4">
+            {/* ... Form input tetap sama ... */}
             <div>
               <label
                 htmlFor="customerId"

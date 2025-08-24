@@ -12,11 +12,12 @@ import {
   getDoc,
   doc,
 } from "firebase/firestore";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function CustomerHome() {
   const { currentUser, userProfile } = useAuth();
   const [transactions, setTransactions] = useState([]);
-  const [memberships, setMemberships] = useState([]); // State untuk menyimpan data keanggotaan
+  const [memberships, setMemberships] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,7 +26,6 @@ export default function CustomerHome() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Ambil data keanggotaan dari sub-koleksi
         const membershipsQuery = query(
           collection(db, "users", currentUser.uid, "memberships"),
           orderBy("points", "desc")
@@ -37,7 +37,6 @@ export default function CustomerHome() {
         }));
         setMemberships(memberList);
 
-        // Ambil riwayat transaksi
         const transactionsQuery = query(
           collection(db, "transactions"),
           where("customerId", "==", currentUser.uid),
@@ -49,7 +48,6 @@ export default function CustomerHome() {
           ...doc.data(),
         }));
 
-        // Tambahkan nama merchant ke setiap transaksi untuk ditampilkan
         const transactionsWithMerchantName = await Promise.all(
           history.map(async (tx) => {
             if (!tx.merchantId) return { ...tx, merchantName: "Toko Lama" };
@@ -106,23 +104,26 @@ export default function CustomerHome() {
             </button>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow mb-8">
+          {/* Bagian QR Code */}
+          <div className="bg-white p-6 rounded-lg shadow mb-8 text-center">
             <h2 className="text-lg font-semibold text-gray-700">
-              Informasi Akun
+              Tunjukkan QR Code ke Kasir
             </h2>
-            <p className="text-gray-600 mt-2">
-              Selamat datang,{" "}
-              <span className="font-medium">{userProfile?.email}</span>
-            </p>
-            <div className="mt-4 p-3 bg-gray-100 rounded-md">
-              <p className="text-sm text-gray-500">ID Pelanggan Anda:</p>
-              <p className="text-sm font-mono text-gray-800 break-words">
-                {userProfile?.uid}
-              </p>
-              <p className="text-xs text-gray-500 mt-2">
-                Tunjukkan ID ini kepada kasir untuk mendapatkan poin.
-              </p>
+            <div className="mt-4 flex justify-center">
+              {userProfile?.uid ? (
+                <QRCodeSVG
+                  value={userProfile.uid}
+                  size={200} // Ukuran QR code
+                  bgColor={"#ffffff"}
+                  fgColor={"#000000"}
+                  level={"L"}
+                  includeMargin={false}
+                />
+              ) : (
+                <p>ID Pelanggan tidak ditemukan.</p>
+              )}
             </div>
+            <p className="text-xs text-gray-500 mt-4">ID: {userProfile?.uid}</p>
           </div>
 
           {/* Kartu Keanggotaan */}

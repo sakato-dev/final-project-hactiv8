@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ProtectedRoute from "@/components/protected-route";
 import { auth, db } from "@/lib/firebase";
 import {
@@ -24,6 +24,39 @@ export default function KasirHome() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isScanning, setIsScanning] = useState(false);
+
+  const scannerRef = useRef(null);
+
+  useEffect(() => {
+    if (isScanning) {
+      scannerRef.current = new Html5QrcodeScanner(
+        "qr-reader",
+        { fps: 10, qrbox: 250 },
+        false
+      );
+
+      const onScanSuccess = (decodedText, decodedResult) => {
+        setCustomerId(decodedText);
+        setIsScanning(false);
+        scannerRef.current.clear();
+      };
+
+      const onScanError = (errorMessage) => {};
+
+      scannerRef.current.render(onScanSuccess, onScanError);
+    } else {
+      if (scannerRef.current && scannerRef.current.getState() === 2) {
+        scannerRef.current.clear();
+      }
+    }
+
+    return () => {
+      if (scannerRef.current && scannerRef.current.getState() === 2) {
+        scannerRef.current.clear();
+      }
+    };
+  }, [isScanning]);
 
   const handleAmountChange = (e) => {
     const value = e.target.value;
@@ -50,7 +83,6 @@ export default function KasirHome() {
 
       const merchantId = userProfile.merchantId;
 
-      // 1. Buat data transaksi
       const transactionData = {
         cashierId: auth.currentUser.uid,
         customerId: customerId.trim(),
@@ -61,7 +93,6 @@ export default function KasirHome() {
       };
       await addDoc(collection(db, "transactions"), transactionData);
 
-      // 2. Perbarui poin di sub-koleksi 'memberships' pelanggan
       const membershipDocRef = doc(
         db,
         "users",
@@ -72,12 +103,10 @@ export default function KasirHome() {
       const membershipDoc = await getDoc(membershipDocRef);
 
       if (membershipDoc.exists()) {
-        // Jika sudah jadi member, update poinnya
         await updateDoc(membershipDocRef, {
           points: increment(points),
         });
       } else {
-        // Jika belum jadi member, buat dokumen keanggotaan baru
         const merchantDocRef = doc(db, "merchants", merchantId);
         const merchantDoc = await getDoc(merchantDocRef);
         const merchantName = merchantDoc.exists()
@@ -115,7 +144,6 @@ export default function KasirHome() {
   return (
     <ProtectedRoute>
       <div className="p-8 max-w-lg mx-auto">
-        {/* ... JSX lainnya tetap sama ... */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Halaman Kasir</h1>
           <button
@@ -125,6 +153,18 @@ export default function KasirHome() {
             Logout
           </button>
         </div>
+
+        {isScanning && (
+          <div className="mb-4">
+            <div id="qr-reader" width="100%"></div>
+            <button
+              onClick={() => setIsScanning(false)}
+              className="w-full mt-2 bg-red-500 text-white p-2 rounded"
+            >
+              Batal Scan
+            </button>
+          </div>
+        )}
 
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">Buat Transaksi Baru</h2>
@@ -137,14 +177,24 @@ export default function KasirHome() {
               >
                 ID Pelanggan (dari QR Scan)
               </label>
-              <input
-                id="customerId"
-                type="text"
-                value={customerId}
-                onChange={(e) => setCustomerId(e.target.value)}
-                placeholder="Scan atau masukkan ID pelanggan"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
+              <div className="flex items-center gap-2 mt-1">
+                <input
+                  id="customerId"
+                  type="text"
+                  value={customerId}
+                  onChange={(e) => setCustomerId(e.target.value)}
+                  placeholder="ID pelanggan..."
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsScanning(true)}
+                  className="px-4 py-2 bg-gray-800 text-white rounded-md"
+                  disabled={isScanning}
+                >
+                  Scan
+                </button>
+              </div>
             </div>
             <div>
               <label

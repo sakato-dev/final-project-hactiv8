@@ -15,7 +15,7 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push("/admin"); // Arahkan ke halaman admin setelah login berhasil
+      router.push("/admin");
     } catch (error) {
       console.error("Error logging in:", error);
     }

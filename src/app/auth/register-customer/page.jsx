@@ -22,7 +22,6 @@ export default function RegisterAdmin() {
       );
       const user = userCredential.user;
 
-      // Simpan data tambahan ke Firestore
       await setDoc(doc(db, "users", user.uid), {
         email: user.email,
         role: "customer",

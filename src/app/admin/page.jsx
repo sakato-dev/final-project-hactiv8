@@ -12,8 +12,6 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "@/contexts/auth-context";
 
-const MERCHANTS_COL = "merchants";
-
 export default function AdminHome() {
   const { currentUser, loading } = useAuth();
   const [err, setErr] = useState("");
@@ -23,7 +21,7 @@ export default function AdminHome() {
   const handleLogout = () => auth.signOut();
 
   const loadMerchants = async (uid) => {
-    const merchantsCol = collection(db, MERCHANTS_COL);
+    const merchantsCol = collection(db, "merchants");
     const ownedSnap = await getDocs(
       query(merchantsCol, where("ownerId", "==", uid))
     );
@@ -31,16 +29,14 @@ export default function AdminHome() {
     setMerchants(list);
   };
 
-  // === FUNGSI: Tambah Toko ===
   const createMerchant = async ({ name, description = "" }) => {
     if (!currentUser) throw new Error("Belum login");
     const cleanName = (name ?? "").trim();
     if (!cleanName) throw new Error("Nama toko wajib diisi");
 
-    // (opsional) Cek duplikat nama per owner
     const dupSnap = await getDocs(
       query(
-        collection(db, MERCHANTS_COL),
+        collection(db, "merchants"),
         where("ownerId", "==", currentUser.uid),
         where("name", "==", cleanName)
       )
@@ -57,7 +53,7 @@ export default function AdminHome() {
       updatedAt: serverTimestamp(),
     };
 
-    const ref = await addDoc(collection(db, MERCHANTS_COL), payload);
+    const ref = await addDoc(collection(db, "merchants"), payload);
     return { id: ref.id, ...payload };
   };
 

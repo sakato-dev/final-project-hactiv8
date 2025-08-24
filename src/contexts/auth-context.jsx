@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 const AuthContext = createContext();
@@ -17,26 +17,37 @@ export function AuthProvider({ children }) {
   const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
+        setCurrentUser(user);
         const userDocRef = doc(db, "users", user.uid);
-        const userDocSnap = await getDoc(userDocRef);
+        const unsubscribeSnapshot = onSnapshot(
+          userDocRef,
+          (doc) => {
+            if (doc.exists()) {
+              setUserProfile(doc.data());
+            } else {
+              setUserProfile(null);
+            }
+            setLoading(false);
+          },
+          (error) => {
+            console.error("Error listening to user profile:", error);
+            setCurrentUser(null);
+            setUserProfile(null);
+            setLoading(false);
+          }
+        );
 
-        if (userDocSnap.exists()) {
-          setCurrentUser({ ...user });
-          setUserProfile(userDocSnap.data());
-        } else {
-          setCurrentUser(user);
-          setUserProfile(null);
-        }
+        return () => unsubscribeSnapshot();
       } else {
         setCurrentUser(null);
         setUserProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => unsubscribeAuth();
   }, []);
 
   const value = {

@@ -1,3 +1,13 @@
+import ProtectedRoute from "@/components/protected-route";
+
 export default function KasirHome() {
-  return <div>KasirHome</div>;
+  const handleLogout = () => {
+    auth.signOut();
+  };
+  return (
+    <ProtectedRoute>
+      <div>KasirHome</div>
+      <button onClick={handleLogout}>log out</button>
+    </ProtectedRoute>
+  );
 }

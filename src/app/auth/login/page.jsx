@@ -51,17 +51,19 @@ export default function LoginPage() {
 
           <div className="text-center mb-8">
             <div className="inline-block mb-4">{/* <PointJuroLogo /> */}</div>
-            <h2 className="text-2xl font-semibold text-gray-800">PointJuro</h2>
+            <h2 className="text-2xl font-semibold text-gray-800">
+              Point Juaro
+            </h2>
           </div>
 
           <form onSubmit={handleSubmit}>
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <input
                 type="text"
                 placeholder="First Name"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </div>
+            </div> */}
             <div className="mb-4">
               <input
                 type="email"
@@ -82,13 +84,13 @@ export default function LoginPage() {
                 required
               />
             </div>
-            <div className="mb-6">
+            {/* <div className="mb-6">
               <input
                 type="password"
                 placeholder="Confirm Password"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </div>
+            </div> */}
             <button
               type="submit"
               className="w-full bg-[#1E293B] text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition duration-300"
@@ -105,14 +107,20 @@ export default function LoginPage() {
             Lupa kata sandi Anda?
           </p>
 
-          <div className="flex items-center justify-center my-6">
-            <button className="p-2 border border-gray-300 rounded-full hover:bg-gray-100 transition duration-300">
+          <div className="flex items-center justify-center my-6 gap-2">
+            <button className="p-2 border border-gray-300 rounded-full hover:bg-gray-100 transition duration-300 text-xl">
               <FaGoogle />
             </button>
-            <Link href="/admin" className="p-2 bg-blue-500 text-white">
+            <Link
+              href="/admin"
+              className="p-2 bg-blue-500 text-white rounded-2xl"
+            >
               Login Admin
             </Link>
-            <Link href="/cashier" className="p-2 bg-blue-500 text-white">
+            <Link
+              href="/cashier"
+              className="p-2 bg-blue-500 text-white rounded-2xl"
+            >
               Login kasir
             </Link>
           </div>

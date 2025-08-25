@@ -1,4 +1,9 @@
 "use client";
+
+import { useState } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import { FaGoogle } from "react-icons/fa";
@@ -6,6 +11,18 @@ import { FaGoogle } from "react-icons/fa";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const router = useRouter();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push("/admin");
+    } catch (error) {
+      console.error("Error logging in:", error);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -84,13 +101,7 @@ export default function LoginPage() {
                 required
               />
             </div>
-            {/* <div className="mb-6">
-              <input
-                type="password"
-                placeholder="Confirm Password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div> */}
+
             <button
               type="submit"
               className="w-full bg-[#1E293B] text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition duration-300"
@@ -129,36 +140,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-// import Link from "next/link";
-
-// export default function LoginPage() {
-//   return (
-//     <div>
-//       LoginPage
-//       <div className="flex gap-4">
-//         <Link
-//           href="/auth/register-admin"
-//           className="p-2 bg-blue-500 text-white"
-//         >
-//           Register Admin
-//         </Link>
-//         <Link
-//           href="/auth/register-customer"
-//           className="p-2 bg-blue-500 text-white"
-//         >
-//           Register customer
-//         </Link>
-//         <Link href="/admin" className="p-2 bg-blue-500 text-white">
-//           Login Admin
-//         </Link>
-//         <Link href="/cashier" className="p-2 bg-blue-500 text-white">
-//           Login kasir
-//         </Link>
-//         <Link href="/customer" className="p-2 bg-blue-500 text-white">
-//           Login customer
-//         </Link>
-//       </div>
-//     </div>
-//   );
-// }

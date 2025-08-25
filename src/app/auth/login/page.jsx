@@ -5,7 +5,6 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 
 export default function LoginPage() {
@@ -22,12 +21,6 @@ export default function LoginPage() {
     } catch (error) {
       console.error("Error logging in:", error);
     }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Tambahkan logika handle login di sini
-    console.log("Login attempt with:", { email, password });
   };
 
   return (
@@ -73,14 +66,7 @@ export default function LoginPage() {
             </h2>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            {/* <div className="mb-4">
-              <input
-                type="text"
-                placeholder="First Name"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div> */}
+          <form onSubmit={handleLogin}>
             <div className="mb-4">
               <input
                 type="email"

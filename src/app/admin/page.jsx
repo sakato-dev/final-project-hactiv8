@@ -216,6 +216,12 @@ export default function AdminHome() {
                         <h3 className="text-xl font-semibold text-gray-800">
                           Kasir Terdaftar
                         </h3>
+                        <Link
+                          href={"/cashier"}
+                          className=" p-1 rounded-md bg-blue-300 text-white hover:bg-blue-400"
+                        >
+                          kasir page
+                        </Link>
                         {cashiers.length > 0 ? (
                           <ul className="mt-2 list-disc list-inside bg-gray-50 p-3 rounded-md">
                             {cashiers.map((c) => (
@@ -229,12 +235,7 @@ export default function AdminHome() {
                             <p className="text-gray-500 mt-2">
                               Belum ada kasir terdaftar.
                             </p>
-                            <Link
-                              href={"/cashier"}
-                              className=" p-1 rounded-md bg-blue-300 text-white hover:bg-blue-400"
-                            >
-                              kasir page
-                            </Link>
+
                             <div className="mt-6 border-t pt-4">
                               <h3 className="text-lg font-semibold text-gray-800">
                                 Daftarkan Kasir Baru

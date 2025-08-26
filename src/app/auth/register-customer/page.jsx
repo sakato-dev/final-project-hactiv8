@@ -116,28 +116,5 @@ export default function RegisterAdmin() {
         </div>
       </div>
     </div>
-    // <div>
-    //   <h1>Register customer</h1>
-    //   <form onSubmit={handleRegister}>
-    //     <input
-    //       type="email"
-    //       value={email}
-    //       onChange={(e) => setEmail(e.target.value)}
-    //       placeholder="Email"
-    //     />
-    //     <input
-    //       type="password"
-    //       value={password}
-    //       onChange={(e) => setPassword(e.target.value)}
-    //       placeholder="Password"
-    //     />
-    //     <button type="submit">Register</button>
-    //   </form>
-    //   <div className="flex gap-4">
-    //     <Link href="/auth/login" className="p-2 bg-blue-500 text-white">
-    //       Login
-    //     </Link>
-    //   </div>
-    // </div>
   );
 }

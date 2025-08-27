@@ -3,12 +3,13 @@ import { useCart } from "@/contexts/CartContext";
 import React, { useState } from "react";
 
 function CartPage() {
-  const { cartItems, updateQuantity, removeFromCart } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, clearCart } = useCart();
 
   const [showPayment, setShowPayment] = useState(false);
   const [customerPay, setCustomerPay] = useState("");
   const [showScanPopup, setShowScanPopup] = useState(false);
-  const [isPaid, setIsPaid] = useState(false); // 👈 Tambah state pembayaran
+  const [isPaid, setIsPaid] = useState(false);
+  const [orderSummary, setOrderSummary] = useState(null);
 
   const subTotal = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -31,12 +32,20 @@ function CartPage() {
   };
 
   const handleConfirmPayment = () => {
-    setIsPaid(true); // tandai sudah bayar
+    setOrderSummary({
+      items: [...cartItems],
+      subTotal,
+      tax,
+      total,
+      customerPay,
+      change,
+    });
+    setIsPaid(true);
+    clearCart();
   };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 space-y-10">
-      {/* --- CART MODE --- */}
       <div className="bg-neutral-900 rounded-lg p-4">
         <table className="w-full">
           <thead>
@@ -105,13 +114,11 @@ function CartPage() {
         </table>
 
         <div className="mt-6 flex flex-col items-end gap-4">
-          {/* Total Price */}
           <div className="flex justify-between w-60 text-white text-lg font-semibold">
             <span>Total:</span>
             <span>Rp {subTotal.toLocaleString()}</span>
           </div>
 
-          {/* Continue to Pay Button */}
           <button
             onClick={() => setShowPayment(true)}
             className="w-60 py-3 bg-orange-500 rounded-2xl text-white text-lg font-medium hover:bg-orange-600 transition"
@@ -123,7 +130,6 @@ function CartPage() {
 
       {showPayment && (
         <div className="grid grid-cols-2 gap-10">
-          {/* --- RECEIPT --- */}
           <div className="bg-white p-6 rounded-xl shadow space-y-4">
             <div className="text-center space-y-1">
               <h2 className="text-2xl font-bold">Point Juaro</h2>
@@ -138,7 +144,7 @@ function CartPage() {
             <hr />
 
             <div className="text-sm space-y-1">
-              {cartItems.map((item) => (
+              {orderSummary?.items.map((item) => (
                 <div
                   key={item.id}
                   className="flex justify-between border-b py-1"
@@ -158,7 +164,7 @@ function CartPage() {
             <div className="text-sm space-y-1">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>Rp {subTotal.toLocaleString()}</span>
+                <span>Rp {orderSummary?.subTotal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
                 <span>Tax (12%)</span>
@@ -166,12 +172,11 @@ function CartPage() {
               </div>
               <div className="flex justify-between font-semibold">
                 <span>Total</span>
-                <span>Rp {total.toLocaleString()}</span>
+                <span>Rp {orderSummary?.total.toLocaleString()}</span>
               </div>
             </div>
 
-            {/* 👇 Tambahan info kalau sudah dibayar */}
-            {isPaid && (
+            {isPaid && orderSummary && (
               <>
                 <hr />
                 <div className="text-sm space-y-1">
@@ -181,11 +186,18 @@ function CartPage() {
                   </div>
                   <div className="flex justify-between">
                     <span>Customer Pay</span>
-                    <span>Rp {Number(customerPay).toLocaleString()}</span>
+                    <span>
+                      Rp {Number(orderSummary.customerPay).toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Change</span>
-                    <span>Rp {change > 0 ? change.toLocaleString() : 0}</span>
+                    <span>
+                      Rp{" "}
+                      {orderSummary.change > 0
+                        ? orderSummary.change.toLocaleString()
+                        : 0}
+                    </span>
                   </div>
                 </div>
               </>
@@ -196,11 +208,9 @@ function CartPage() {
             </p>
           </div>
 
-          {/* --- PAYMENT SECTION --- */}
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">Payment</h2>
 
-            {/* Charges, Payment, Change */}
             <div className="space-y-3 text-lg">
               <div className="flex justify-between">
                 <span className="font-medium">Total to Pay:</span>
@@ -222,7 +232,6 @@ function CartPage() {
               </div>
             </div>
 
-            {/* Quick Cash */}
             <div className="flex flex-wrap gap-2">
               {[10000, 20000, 50000, 100000].map((amt) => (
                 <button
@@ -235,7 +244,6 @@ function CartPage() {
               ))}
             </div>
 
-            {/* Numpad */}
             <div className="grid grid-cols-3 gap-2">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, ".", 0, "DELETE"].map((n) => (
                 <button
@@ -258,17 +266,19 @@ function CartPage() {
                 Scan Member Card
               </button>
               <button
-                onClick={handleConfirmPayment} // 👈 klik confirm
-                className="p-3 bg-green-600 rounded-lg text-white"
+                onClick={handleConfirmPayment}
+                className={`p-3 rounded-lg text-white ${
+                  isPaid ? "bg-gray-400 cursor-not-allowed" : "bg-green-600"
+                }`}
+                disabled={isPaid}
               >
-                Confirm Payment
+                {isPaid ? "Done" : "Confirm Payment"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* --- POPUP SCAN MEMBER --- */}
       {showScanPopup && (
         <div className="fixed inset-0 bg-opacity-10 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl w-96 space-y-4">

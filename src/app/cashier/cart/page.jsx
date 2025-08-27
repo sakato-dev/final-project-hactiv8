@@ -1,5 +1,6 @@
 "use client";
 import { useCart } from "@/contexts/CartContext";
+import Link from "next/link";
 import React from "react";
 
 function CartPage() {
@@ -85,9 +86,12 @@ function CartPage() {
             Rp {subTotal.toLocaleString()}
           </span>
         </div>
-        <button className="w-60 py-3 bg-orange-500 rounded-2xl text-white text-lg font-medium hover:bg-orange-600 transition">
+        <Link
+          href="/cashier/checkout"
+          className="w-60 py-3 bg-orange-500 rounded-2xl text-white text-lg font-medium hover:bg-orange-600 transition"
+        >
           Payment
-        </button>
+        </Link>
       </div>
     </div>
   );

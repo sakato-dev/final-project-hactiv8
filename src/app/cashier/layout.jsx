@@ -2,8 +2,16 @@
 import React from "react";
 import Link from "next/link";
 import { CartProvider } from "@/contexts/CartContext";
+import { auth } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
 
 function Layout({ children }) {
+  const router = useRouter();
+  const handleLogout = () => {
+    auth.signOut();
+    router.push("/auth/login");
+  };
+
   return (
     <CartProvider>
       <div>
@@ -27,6 +35,12 @@ function Layout({ children }) {
             >
               Scan QR
             </Link>
+            <button
+              onClick={handleLogout}
+              className="bg-black text-white px-4 py-2 rounded-md mt-3"
+            >
+              Logout
+            </button>
           </div>
         </nav>
         <div>{children}</div>

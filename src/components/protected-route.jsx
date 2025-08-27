@@ -25,9 +25,12 @@ export default function ProtectedRoute({ children }) {
       } else if (
         role === "admin" &&
         pathname !== "/admin" &&
-        pathname !== "/cashier" &&
+        pathname !== "/cashier/home" &&
+        pathname !== "/cashier/cart" &&
+        pathname !== "/cashier/scan-qr" &&
         pathname !== "/admin/staff" &&
-        pathname !== "/admin/products-list"
+        pathname !== "/admin/products-list" &&
+        pathname !== "/admin/products-list/new"
       ) {
         router.push("/admin");
       }

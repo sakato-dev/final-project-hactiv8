@@ -21,7 +21,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-cover`} style={{ backgroundImage: "url('/bg-image.png')" }}
+        // className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-cover`} style={{ backgroundImage: "url('/bg-image.png')" }}
       >
         <AuthProvider>{children}</AuthProvider>
       </body>

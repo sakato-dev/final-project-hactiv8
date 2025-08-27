@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import React, { useState } from "react";
 
 export default function page() {
@@ -9,6 +10,7 @@ export default function page() {
   return (
     <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
       <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
+      <Link href="/admin/products-list/new">Add new product</Link>
       <div className="overflow-x-auto mt-6 rounded-xl border border-black bg-white dark:bg-gray-800">
         <table className="table-auto w-full text-left text-sm">
           <thead className="bg-gray-100 dark:bg-gray-700 text-black dark:text-gray-300 uppercase">

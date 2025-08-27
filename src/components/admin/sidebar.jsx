@@ -95,7 +95,7 @@ export default function Sidebar({ isSideBarOpen, onClick, onClickNav }) {
 
         {/* contact us message */}
         <Link
-          href={"/cashier"}
+          href={"/cashier/home"}
           className={`flex items-center gap-4 w-full p-3 rounded-lg
                   transition-colors duration-200
                   ${

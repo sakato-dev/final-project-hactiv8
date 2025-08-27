@@ -1,7 +1,8 @@
+import { redirect } from "next/navigation";
 import React from "react";
 
 function page() {
-  return <div>Menu</div>;
+  redirect("/cashier/home");
 }
 
 export default page;

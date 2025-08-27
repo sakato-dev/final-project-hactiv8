@@ -2,14 +2,18 @@
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
+import { db } from "@/lib/firebase";
+import { collection, addDoc } from "firebase/firestore";
 
-export default function page() {
+export default function Page() {
   const [loading, setLoading] = useState(false);
   const [product, setProduct] = useState({
     name: "",
     category: "",
     price: "",
     stock: "",
+    description: "",
+    imgUrl: "",
   });
   const router = useRouter();
 
@@ -19,6 +23,26 @@ export default function page() {
       [e.target.name]: e.target.value,
     });
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await addDoc(collection(db, "products"), {
+        ...product,
+        price: Number(product.price),
+        stock: Number(product.stock),
+      });
+      alert("Produk berhasil ditambahkan!");
+      router.push("/admin/products-list");
+    } catch (error) {
+      console.error("Error adding product: ", error);
+      alert("Gagal menambahkan produk.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
       <div className="max-w-3xl mx-auto p-6 bg-white dark:bg-gray-900 rounded-xl shadow space-y-6">
@@ -32,10 +56,7 @@ export default function page() {
           </h1>
         </div>
 
-        <form
-          className="space-y-4 text-black"
-          // onSubmit={handleSubmit}
-        >
+        <form className="space-y-4 text-black" onSubmit={handleSubmit}>
           {/* Nama Produk */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -67,33 +88,19 @@ export default function page() {
           </div>
 
           {/* Kategori */}
-          {/* <div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Kategori
             </label>
-            <div className="flex gap-2">
-              <select
-                value={product.category}
-                onChange={handleChange}
-                name="category"
-                className="mt-1 w-full px-4 py-2 capitalize border rounded-md text-sm dark:bg-gray-800 dark:text-white dark:border-gray-700"
-              >
-                <option value="">Pilih kategori</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.value} className="capitalize">
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={() => setShowAddCategoryModal(true)}
-                className="mt-1 px-4 py-2 bg-green-500 text-white rounded-md text-sm hover:bg-green-600"
-              >
-                +
-              </button>
-            </div>
-          </div> */}
+            <input
+              type="text"
+              placeholder="Contoh: Elektronik"
+              className="mt-1 w-full px-4 py-2 border rounded-md text-sm dark:bg-gray-800 dark:text-white dark:border-gray-700"
+              name="category"
+              value={product.category}
+              onChange={handleChange}
+            />
+          </div>
 
           {/* Harga & Stok */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -128,28 +135,29 @@ export default function page() {
           {/* Upload Gambar */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Gambar Produk
+              URL Gambar Produk
             </label>
-            {product.imgUrl ? (
+            <input
+              type="text"
+              placeholder="https://example.com/image.jpg"
+              className="mt-1 w-full px-4 py-2 border rounded-md text-sm dark:bg-gray-800 dark:text-white dark:border-gray-700"
+              name="imgUrl"
+              value={product.imgUrl}
+              onChange={handleChange}
+            />
+            {product.imgUrl && (
               <img
                 src={product.imgUrl}
                 alt="product"
-                className="w-32 h-32 sm:w-48 sm:h-48 object-cover mb-3"
+                className="w-32 h-32 sm:w-48 sm:h-48 object-cover mt-3"
               />
-            ) : (
-              <p className="text-sm text-gray-500 mb-3">
-                Belum ada gambar dipilih.
-              </p>
             )}
-            {/* <CloudinaryUploadBtn
-              setImgUrl={(i) => setProduct((prev) => ({ ...prev, imgUrl: i }))}
-            /> */}
           </div>
 
           {/* Tombol Aksi */}
           <div className="flex justify-end gap-3 pt-4">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => router.back()}
               type="button"
               className="px-4 py-2 rounded-md border text-sm dark:text-white dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
@@ -158,6 +166,7 @@ export default function page() {
             <button
               type="submit"
               className="px-4 py-2 rounded-md bg-indigo-600 text-white text-sm hover:bg-indigo-700"
+              disabled={loading}
             >
               {loading ? (
                 <span className="loading loading-spinner"></span>
@@ -168,42 +177,6 @@ export default function page() {
           </div>
         </form>
       </div>
-
-      {/* Add Category Modal */}
-      {/* {showAddCategoryModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-11/12 max-w-sm">
-            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
-              Add New Category
-            </h2>
-            <input
-              type="text"
-              placeholder="Category Name..."
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              className="w-full px-4 py-2 border rounded-md text-sm text-black dark:bg-gray-700 dark:text-white dark:border-gray-600 mb-4"
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowAddCategoryModal(false)}
-                className="px-4 py-2 rounded-md border text-sm text-black dark:text-white dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddCategory}
-                className="px-4 py-2 rounded-md bg-indigo-600 text-white text-sm hover:bg-indigo-700"
-              >
-                {categoryLoading ? (
-                  <span className="loading loading-spinner"></span>
-                ) : (
-                  "Save"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )} */}
     </div>
   );
 }

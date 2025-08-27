@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { FaBoxOpen, FaClipboardList, FaMoneyBill } from "react-icons/fa";
 import formatAngka from "@/utils/FormatAngka";
 import formatRupiah from "@/utils/FormatRupiah";
+import { useRouter } from "next/navigation";
 
 export default function AdminHome() {
   const { currentUser, loading } = useAuth();
@@ -24,6 +25,7 @@ export default function AdminHome() {
   const [cashiers, setCashiers] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [saving, setSaving] = useState(false);
+  const router = useRouter();
 
   const dataCard = [
     {
@@ -110,11 +112,9 @@ export default function AdminHome() {
       updatedAt: serverTimestamp(),
     };
 
-    // 1. Buat dokumen merchant
     const merchantRef = await addDoc(collection(db, "merchants"), payload);
     const merchantId = merchantRef.id;
 
-    // 2. Update dokumen user admin dengan merchantId yang baru dibuat
     const userDocRef = doc(db, "users", currentUser.uid);
     await setDoc(userDocRef, { merchantId: merchantId }, { merge: true });
 
@@ -156,7 +156,6 @@ export default function AdminHome() {
           {dataCard.map((item, i) => (
             <div
               key={i}
-              onClick={item.path ? () => navigate(item.path) : null}
               className={`bg-gray-100 dark:bg-gray-800 p-4 rounded-xl shadow hover:shadow-md flex flex-col items-center transition-all duration-300 ease-in-out ${
                 item.path ? "cursor-pointer" : ""
               }`}

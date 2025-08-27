@@ -1,11 +1,52 @@
 "use client";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import formatRupiah from "@/utils/FormatRupiah";
+import formatAngka from "@/utils/FormatAngka";
 
-export default function page() {
+export default function Page() {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      const productsCollection = collection(db, "products");
+      const productsSnapshot = await getDocs(productsCollection);
+      const productsList = productsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setProducts(productsList);
+      setLoading(false);
+    };
+
+    fetchProducts();
+  }, []);
+
+  const handleEdit = (id) => {
+    router.push(`/admin/products-list/edit/${id}`);
+  };
+
+  const handleDelete = async (id) => {
+    const confirmation = window.confirm(
+      "Apakah Anda yakin ingin menghapus produk ini?"
+    );
+    if (confirmation) {
+      try {
+        await deleteDoc(doc(db, "products", id));
+        setProducts(products.filter((product) => product.id !== id));
+        alert("Produk berhasil dihapus!");
+      } catch (error) {
+        console.error("Error deleting product: ", error);
+        alert("Gagal menghapus produk.");
+      }
+    }
+  };
 
   return (
     <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
@@ -39,7 +80,7 @@ export default function page() {
                   </div>
                 </td>
               </tr>
-            ) : filteredProducts.length === 0 ? (
+            ) : products.length === 0 ? (
               <tr>
                 <td
                   colSpan="7"
@@ -49,7 +90,7 @@ export default function page() {
                 </td>
               </tr>
             ) : (
-              filteredProducts.map((item, index) => (
+              products.map((item, index) => (
                 <tr
                   key={item.id}
                   className="border-t hover:bg-gray-50 dark:hover:bg-gray-700 text-black dark:text-white"

@@ -29,7 +29,8 @@ export default function ProtectedRoute({ children }) {
         role === "cashier" &&
         pathname !== "/cashier/home" &&
         pathname !== "/cashier/cart" &&
-        pathname !== "/cashier/scan-qr"
+        pathname !== "/cashier/scan-qr" &&
+        pathname !== "/cashier/checkout"
       ) {
         router.push("/cashier");
       } else if (

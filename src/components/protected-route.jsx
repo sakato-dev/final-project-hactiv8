@@ -33,7 +33,7 @@ export default function ProtectedRoute({ children }) {
         pathname !== "/cashier/scan-qr" &&
         pathname !== "/cashier/checkout"
       ) {
-        router.push("/cashier");
+        router.push("/cashier/home");
       } else if (
         role === "admin" &&
         pathname !== "/admin" &&

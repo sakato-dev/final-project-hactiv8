@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { auth, db } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import {
   collection,
   query,
@@ -12,8 +12,10 @@ import {
   setDoc,
   orderBy,
 } from "firebase/firestore";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useAuth } from "@/contexts/auth-context";
+import { FaBoxOpen, FaClipboardList, FaMoneyBill } from "react-icons/fa";
+import formatAngka from "@/utils/FormatAngka";
+import formatRupiah from "@/utils/FormatRupiah";
 
 export default function AdminHome() {
   const { currentUser, loading } = useAuth();
@@ -23,9 +25,23 @@ export default function AdminHome() {
   const [transactions, setTransactions] = useState([]);
   const [saving, setSaving] = useState(false);
 
-  const [cashierEmail, setCashierEmail] = useState("");
-  const [cashierPassword, setCashierPassword] = useState("");
-  const [registeringCashier, setRegisteringCashier] = useState(false);
+  const dataCard = [
+    {
+      label: "Total Customer",
+      value: formatAngka(10),
+      icon: <FaBoxOpen className="w-6 h-6" />,
+    },
+    {
+      label: "Total Product",
+      value: formatAngka(100032),
+      icon: <FaClipboardList className="w-6 h-6" />,
+    },
+    {
+      label: "Total Omset",
+      value: formatRupiah(123123),
+      icon: <FaMoneyBill className="w-6 h-6" />,
+    },
+  ];
 
   const loadCashiers = async (merchantId) => {
     if (!merchantId) return;
@@ -121,41 +137,6 @@ export default function AdminHome() {
     }
   };
 
-  const handleRegisterCashier = async (e) => {
-    e.preventDefault();
-    if (merchants.length === 0) {
-      setErr("Anda harus membuat toko terlebih dahulu.");
-      return;
-    }
-    setRegisteringCashier(true);
-    setErr("");
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        cashierEmail,
-        cashierPassword
-      );
-      const user = userCredential.user;
-
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        role: "cashier",
-        uid: user.uid,
-        merchantId: merchants[0].id,
-      });
-
-      alert(`Kasir ${cashierEmail} berhasil didaftarkan!`);
-      await loadCashiers(merchants[0].id);
-      setCashierEmail("");
-      setCashierPassword("");
-    } catch (error) {
-      console.error("Error registering cashier:", error);
-      setErr(error.message);
-    } finally {
-      setRegisteringCashier(false);
-    }
-  };
-
   useEffect(() => {
     if (loading || !currentUser) return;
     loadMerchants(currentUser.uid);
@@ -170,6 +151,28 @@ export default function AdminHome() {
         {err && !loading && (
           <p className="text-red-600 bg-red-100 p-3 rounded-md">{err}</p>
         )}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-4">
+          {dataCard.map((item, i) => (
+            <div
+              key={i}
+              onClick={item.path ? () => navigate(item.path) : null}
+              className={`bg-gray-100 dark:bg-gray-800 p-4 rounded-xl shadow hover:shadow-md flex flex-col items-center transition-all duration-300 ease-in-out ${
+                item.path ? "cursor-pointer" : ""
+              }`}
+            >
+              <div className="text-indigo-600 dark:text-indigo-400 mb-2">
+                {item.icon}
+              </div>
+              <h2 className="text-sm text-gray-600 dark:text-gray-300">
+                {item.label}
+              </h2>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {item.value}
+              </p>
+            </div>
+          ))}
+        </div>
 
         {!loading && !err && (
           <div className="space-y-8">
@@ -215,49 +218,6 @@ export default function AdminHome() {
                           <p className="text-gray-500 mt-2">
                             Belum ada kasir terdaftar.
                           </p>
-
-                          <div className="mt-6 border-t pt-4">
-                            <h3 className="text-lg font-semibold text-gray-800">
-                              Daftarkan Kasir Baru
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              Anda hanya dapat mendaftarkan satu kasir.
-                            </p>
-                            <form
-                              onSubmit={handleRegisterCashier}
-                              className="mt-4 space-y-3 max-w-sm"
-                            >
-                              <input
-                                type="email"
-                                value={cashierEmail}
-                                onChange={(e) =>
-                                  setCashierEmail(e.target.value)
-                                }
-                                placeholder="Email Kasir"
-                                required
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                              />
-                              <input
-                                type="password"
-                                value={cashierPassword}
-                                onChange={(e) =>
-                                  setCashierPassword(e.target.value)
-                                }
-                                placeholder="Password Kasir"
-                                required
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                              />
-                              <button
-                                type="submit"
-                                disabled={registeringCashier}
-                                className="w-full bg-green-600 text-white p-2 rounded-md hover:bg-green-700 disabled:bg-gray-400"
-                              >
-                                {registeringCashier
-                                  ? "Mendaftarkan..."
-                                  : "Daftarkan Kasir"}
-                              </button>
-                            </form>
-                          </div>
                         </>
                       )}
                     </div>

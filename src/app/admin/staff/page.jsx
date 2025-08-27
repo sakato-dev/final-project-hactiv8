@@ -1,7 +1,15 @@
 "use client";
 import { useAuth } from "@/contexts/auth-context";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  setDoc,
+  where,
+} from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 
 export default function page() {
@@ -31,6 +39,27 @@ export default function page() {
     getMerchants(currentUser.uid);
   }, []);
 
+  useEffect(() => {
+    if (merchants.length > 0) {
+      loadCashiers(merchants[0].id);
+    }
+  }, [merchants]);
+
+  const loadCashiers = async (merchantId) => {
+    if (!merchantId) return;
+    const cashiersQuery = query(
+      collection(db, "users"),
+      where("merchantId", "==", merchantId),
+      where("role", "==", "cashier")
+    );
+    const querySnapshot = await getDocs(cashiersQuery);
+    const cashiersList = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    setCashiers(cashiersList);
+  };
+
   const handleRegisterCashier = async (e) => {
     e.preventDefault();
     if (merchants.length === 0) {
@@ -55,7 +84,6 @@ export default function page() {
       });
 
       alert(`Kasir ${cashierEmail} berhasil didaftarkan!`);
-      await loadCashiers(merchants[0].id);
       setCashierEmail("");
       setCashierPassword("");
     } catch (error) {

@@ -27,7 +27,8 @@ export default function ProtectedRoute({ children }) {
         pathname !== "/admin" &&
         pathname !== "/cashier" &&
         pathname !== "/admin/staff" &&
-        pathname !== "/admin/products-list"
+        pathname !== "/admin/products-list" &&
+        pathname !== "/admin/products-list/new"
       ) {
         router.push("/admin");
       }

@@ -25,12 +25,14 @@ export default function ProtectedRoute({ children }) {
       } else if (
         role === "admin" &&
         pathname !== "/admin" &&
-        pathname !== "/cashier"
+        pathname !== "/cashier" &&
+        pathname !== "/admin/staff" &&
+        pathname !== "/admin/products-list"
       ) {
         router.push("/admin");
       }
     }
-  }, [currentUser, userProfile, router, pathname]);
+  }, [currentUser, userProfile]);
 
   return <>{currentUser ? children : null}</>;
 }

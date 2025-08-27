@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import ProtectedRoute from "@/components/protected-route";
 import { auth, db } from "@/lib/firebase";
 import {
   collection,
@@ -15,7 +14,6 @@ import {
 } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useAuth } from "@/contexts/auth-context";
-import Link from "next/link";
 
 export default function AdminHome() {
   const { currentUser, loading } = useAuth();
@@ -28,8 +26,6 @@ export default function AdminHome() {
   const [cashierEmail, setCashierEmail] = useState("");
   const [cashierPassword, setCashierPassword] = useState("");
   const [registeringCashier, setRegisteringCashier] = useState(false);
-
-  const handleLogout = () => auth.signOut();
 
   const loadCashiers = async (merchantId) => {
     if (!merchantId) return;
@@ -166,199 +162,182 @@ export default function AdminHome() {
   }, [loading, currentUser]);
 
   return (
-    <ProtectedRoute>
-      <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">
-              Admin Dashboard
-            </h1>
-            <button
-              onClick={handleLogout}
-              className="border px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-100"
-            >
-              Logout
-            </button>
-          </div>
+    <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
+      <div className="">
+        <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
 
-          {loading && <p>Memuat...</p>}
-          {err && !loading && (
-            <p className="text-red-600 bg-red-100 p-3 rounded-md">{err}</p>
-          )}
+        {loading && <p>Memuat...</p>}
+        {err && !loading && (
+          <p className="text-red-600 bg-red-100 p-3 rounded-md">{err}</p>
+        )}
 
-          {!loading && !err && (
-            <div className="space-y-8">
-              {merchants.length === 0 ? (
-                <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-                  <p>Anda belum memiliki toko.</p>
-                  <button
-                    onClick={handleCreateMerchant}
-                    disabled={saving}
-                    className="border px-4 py-2 rounded-md mt-4 bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400"
-                  >
-                    {saving ? "Menyimpan..." : "Buat Toko Sekarang"}
-                  </button>
-                </div>
-              ) : (
-                merchants.map((m) => (
-                  <div key={m.id} className="space-y-8">
-                    {/* Informasi Toko & Kasir */}
-                    <div className="bg-white p-6 rounded-lg shadow-sm">
-                      <div>
-                        <h2 className="text-2xl font-bold text-gray-900">
-                          {m.name ?? "(Tanpa nama)"}
-                        </h2>
-                        <p className="text-sm text-gray-500 mt-1">
-                          ID Toko: {m.id}
-                        </p>
-                      </div>
-                      <div className="mt-6">
-                        <h3 className="text-xl font-semibold text-gray-800">
-                          Kasir Terdaftar
-                        </h3>
-                        <Link
-                          href={"/cashier"}
-                          className=" p-1 rounded-md bg-blue-300 text-white hover:bg-blue-400"
-                        >
-                          kasir page
-                        </Link>
-                        {cashiers.length > 0 ? (
-                          <ul className="mt-2 list-disc list-inside bg-gray-50 p-3 rounded-md">
-                            {cashiers.map((c) => (
-                              <li key={c.id} className="text-gray-700">
-                                {c.email}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <>
-                            <p className="text-gray-500 mt-2">
-                              Belum ada kasir terdaftar.
-                            </p>
-
-                            <div className="mt-6 border-t pt-4">
-                              <h3 className="text-lg font-semibold text-gray-800">
-                                Daftarkan Kasir Baru
-                              </h3>
-                              <p className="text-sm text-gray-600">
-                                Anda hanya dapat mendaftarkan satu kasir.
-                              </p>
-                              <form
-                                onSubmit={handleRegisterCashier}
-                                className="mt-4 space-y-3 max-w-sm"
-                              >
-                                <input
-                                  type="email"
-                                  value={cashierEmail}
-                                  onChange={(e) =>
-                                    setCashierEmail(e.target.value)
-                                  }
-                                  placeholder="Email Kasir"
-                                  required
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                />
-                                <input
-                                  type="password"
-                                  value={cashierPassword}
-                                  onChange={(e) =>
-                                    setCashierPassword(e.target.value)
-                                  }
-                                  placeholder="Password Kasir"
-                                  required
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                />
-                                <button
-                                  type="submit"
-                                  disabled={registeringCashier}
-                                  className="w-full bg-green-600 text-white p-2 rounded-md hover:bg-green-700 disabled:bg-gray-400"
-                                >
-                                  {registeringCashier
-                                    ? "Mendaftarkan..."
-                                    : "Daftarkan Kasir"}
-                                </button>
-                              </form>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Riwayat Transaksi */}
-                    <div className="bg-white p-6 rounded-lg shadow-sm">
-                      <h2 className="text-2xl font-bold mb-4 text-gray-900">
-                        Riwayat Transaksi
+        {!loading && !err && (
+          <div className="space-y-8">
+            {merchants.length === 0 ? (
+              <div className="bg-white p-6 rounded-lg shadow-sm text-center">
+                <p>Anda belum memiliki toko.</p>
+                <button
+                  onClick={handleCreateMerchant}
+                  disabled={saving}
+                  className="border px-4 py-2 rounded-md mt-4 bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400"
+                >
+                  {saving ? "Menyimpan..." : "Buat Toko Sekarang"}
+                </button>
+              </div>
+            ) : (
+              merchants.map((m) => (
+                <div key={m.id} className="space-y-8">
+                  {/* Informasi Toko & Kasir */}
+                  <div className="bg-white p-6 rounded-lg shadow-sm">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">
+                        {m.name ?? "(Tanpa nama)"}
                       </h2>
-                      {transactions.length > 0 ? (
-                        <div className="overflow-x-auto">
-                          <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                              <tr>
-                                <th
-                                  scope="col"
-                                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                >
-                                  Tanggal
-                                </th>
-                                <th
-                                  scope="col"
-                                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                >
-                                  ID Pelanggan
-                                </th>
-                                <th
-                                  scope="col"
-                                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                >
-                                  Jumlah (Rp)
-                                </th>
-                                <th
-                                  scope="col"
-                                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                >
-                                  Poin
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                              {transactions.map((tx) => (
-                                <tr key={tx.id}>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                    {tx.createdAt
-                                      ? new Date(
-                                          tx.createdAt.seconds * 1000
-                                        ).toLocaleString("id-ID", {
-                                          dateStyle: "medium",
-                                          timeStyle: "short",
-                                        })
-                                      : "N/A"}
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono ">
-                                    {tx.customerId}
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {tx.amount.toLocaleString("id-ID")}
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-bold">
-                                    +{tx.pointsAwarded}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        ID Toko: {m.id}
+                      </p>
+                    </div>
+                    <div className="mt-6">
+                      <h3 className="text-xl font-semibold text-gray-800">
+                        Kasir Terdaftar
+                      </h3>
+
+                      {cashiers.length > 0 ? (
+                        <ul className="mt-2 list-disc list-inside bg-gray-50 p-3 rounded-md">
+                          {cashiers.map((c) => (
+                            <li key={c.id} className="text-gray-700">
+                              {c.email}
+                            </li>
+                          ))}
+                        </ul>
                       ) : (
-                        <p className="text-gray-500 mt-4">
-                          Belum ada transaksi yang tercatat.
-                        </p>
+                        <>
+                          <p className="text-gray-500 mt-2">
+                            Belum ada kasir terdaftar.
+                          </p>
+
+                          <div className="mt-6 border-t pt-4">
+                            <h3 className="text-lg font-semibold text-gray-800">
+                              Daftarkan Kasir Baru
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Anda hanya dapat mendaftarkan satu kasir.
+                            </p>
+                            <form
+                              onSubmit={handleRegisterCashier}
+                              className="mt-4 space-y-3 max-w-sm"
+                            >
+                              <input
+                                type="email"
+                                value={cashierEmail}
+                                onChange={(e) =>
+                                  setCashierEmail(e.target.value)
+                                }
+                                placeholder="Email Kasir"
+                                required
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                              />
+                              <input
+                                type="password"
+                                value={cashierPassword}
+                                onChange={(e) =>
+                                  setCashierPassword(e.target.value)
+                                }
+                                placeholder="Password Kasir"
+                                required
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                              />
+                              <button
+                                type="submit"
+                                disabled={registeringCashier}
+                                className="w-full bg-green-600 text-white p-2 rounded-md hover:bg-green-700 disabled:bg-gray-400"
+                              >
+                                {registeringCashier
+                                  ? "Mendaftarkan..."
+                                  : "Daftarkan Kasir"}
+                              </button>
+                            </form>
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          )}
-        </div>
+
+                  {/* Riwayat Transaksi */}
+                  <div className="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 className="text-2xl font-bold mb-4 text-gray-900">
+                      Riwayat Transaksi
+                    </h2>
+                    {transactions.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th
+                                scope="col"
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              >
+                                Tanggal
+                              </th>
+                              <th
+                                scope="col"
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              >
+                                ID Pelanggan
+                              </th>
+                              <th
+                                scope="col"
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              >
+                                Jumlah (Rp)
+                              </th>
+                              <th
+                                scope="col"
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              >
+                                Poin
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {transactions.map((tx) => (
+                              <tr key={tx.id}>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                  {tx.createdAt
+                                    ? new Date(
+                                        tx.createdAt.seconds * 1000
+                                      ).toLocaleString("id-ID", {
+                                        dateStyle: "medium",
+                                        timeStyle: "short",
+                                      })
+                                    : "N/A"}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono ">
+                                  {tx.customerId}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {tx.amount.toLocaleString("id-ID")}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-bold">
+                                  +{tx.pointsAwarded}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 mt-4">
+                        Belum ada transaksi yang tercatat.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
-    </ProtectedRoute>
+    </div>
   );
 }

@@ -16,7 +16,7 @@ export default function ProfilePage() {
         {/* Header with Back */}
         <div className="flex items-center mb-6">
           <button
-            onClick={() => router.push("/customer")}
+            onClick={() => router.back()}
             className="mr-3 text-white bg-gray-700 px-3 py-1 rounded-lg"
           >
             ← Back

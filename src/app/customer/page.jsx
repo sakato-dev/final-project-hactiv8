@@ -13,9 +13,10 @@ import {
   doc,
 } from "firebase/firestore";
 import { QRCodeSVG } from "qrcode.react";
-import { FaBell } from "react-icons/fa";
+import { FaBell, FaUser } from "react-icons/fa";
 import CustomerTabs from "@/components/customer/customer-tabs";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function CustomerHome() {
   const { currentUser, userProfile } = useAuth();
@@ -114,7 +115,9 @@ export default function CustomerHome() {
   const getCurrentCardTransactions = () => {
     if (memberships.length === 0) return [];
     const currentMembership = memberships[currentCardIndex];
-    return transactions.filter(tx => tx.merchantId === currentMembership.merchantId);
+    return transactions.filter(
+      (tx) => tx.merchantId === currentMembership.merchantId
+    );
   };
 
   if (loading) {
@@ -133,16 +136,16 @@ export default function CustomerHome() {
         {/* Header */}
         <div className="flex justify-between items-center p-4">
           <div className="flex items-center space-x-2">
-            <img src="/logo.png" alt="Point Juaro"/>
+            <img src="/logo.png" alt="Point Juaro" />
           </div>
           <div className="flex items-center space-x-4">
-            <FaBell className="w-8 h-8 bg-gray-600 rounded-full p-2"/>
-            <button
-              onClick={() => router.push("/customer/profile")}
+            <FaBell className="w-8 h-8 bg-gray-600 rounded-full p-2" />
+            <Link
+              href={"/customer/profile"}
               className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center"
             >
-              <span className="text-xs"></span>
-            </button>
+              <FaUser />
+            </Link>
           </div>
         </div>
 
@@ -165,12 +168,14 @@ export default function CustomerHome() {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -mr-16 -mt-16"></div>
                     <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full -ml-12 -mb-12"></div>
                   </div>
-                  
+
                   {/* Card Content */}
                   <div className="relative z-10">
                     <div className="flex justify-between items-start mb-8">
                       <div>
-                        <h3 className="text-2xl font-medium opacity-90">Card {currentCardIndex + 1}</h3>
+                        <h3 className="text-2xl font-medium opacity-90">
+                          Card {currentCardIndex + 1}
+                        </h3>
                       </div>
                       <p className="opacity-80 text-2xl">Tier level</p>
                     </div>
@@ -178,7 +183,9 @@ export default function CustomerHome() {
                     <div className="mb-8">
                       <div className="flex space-x-1 mb-4">
                         {[...Array(4)].map((_, i) => (
-                          <span key={i} className="text-white opacity-60">•••• </span>
+                          <span key={i} className="text-white opacity-60">
+                            ••••{" "}
+                          </span>
                         ))}
                         <span className="text-white font-bold text-lg">
                           {memberships[currentCardIndex]?.points || 0}
@@ -214,7 +221,9 @@ export default function CustomerHome() {
                         key={index}
                         onClick={() => setCurrentCardIndex(index)}
                         className={`w-2 h-2 rounded-full transition-colors ${
-                          index === currentCardIndex ? 'bg-white' : 'bg-gray-600'
+                          index === currentCardIndex
+                            ? "bg-white"
+                            : "bg-gray-600"
                         }`}
                       />
                     ))}
@@ -225,7 +234,9 @@ export default function CustomerHome() {
           ) : (
             <div className="mb-8">
               <div className="bg-gray-800 p-6 rounded-2xl text-center">
-                <p className="text-gray-400">Anda belum menjadi anggota di toko manapun.</p>
+                <p className="text-gray-400">
+                  Anda belum menjadi anggota di toko manapun.
+                </p>
               </div>
             </div>
           )}
@@ -240,7 +251,7 @@ export default function CustomerHome() {
                 <div>
                   <p className="font-medium">Nama Customer</p>
                   <p className="text-sm text-gray-400">
-                    {memberships[currentCardIndex]?.merchantName || 'Toko'}
+                    {memberships[currentCardIndex]?.merchantName || "Toko"}
                   </p>
                 </div>
               </div>
@@ -248,26 +259,32 @@ export default function CustomerHome() {
 
             <div className="bg-white rounded-b-2xl text-gray-900">
               <div className="p-4">
-
                 {getCurrentCardTransactions().length > 0 ? (
                   <div className="space-y-3">
-                    {getCurrentCardTransactions().slice(0, 3).map((tx) => (
-                      <div key={tx.id} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                        <div>
-                          <p className="text-sm font-medium">
-                            Rp {tx.amount.toLocaleString("id-ID")}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {tx.createdAt
-                              ? new Date(tx.createdAt.seconds * 1000).toLocaleDateString("id-ID")
-                              : "Baru saja"}
-                          </p>
+                    {getCurrentCardTransactions()
+                      .slice(0, 3)
+                      .map((tx) => (
+                        <div
+                          key={tx.id}
+                          className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0"
+                        >
+                          <div>
+                            <p className="text-sm font-medium">
+                              Rp {tx.amount.toLocaleString("id-ID")}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {tx.createdAt
+                                ? new Date(
+                                    tx.createdAt.seconds * 1000
+                                  ).toLocaleDateString("id-ID")
+                                : "Baru saja"}
+                            </p>
+                          </div>
+                          <div className="text-sm font-medium text-green-600">
+                            +{tx.pointsAwarded} poin
+                          </div>
                         </div>
-                        <div className="text-sm font-medium text-green-600">
-                          +{tx.pointsAwarded} poin
-                        </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500 text-center py-4">

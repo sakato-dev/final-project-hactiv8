@@ -18,9 +18,20 @@ export default function ProtectedRoute({ children }) {
     if (userProfile) {
       const role = userProfile.role;
 
-      if (role === "customer" && pathname !== "/customer") {
+      if (
+        role === "customer" &&
+        pathname !== "/customer" &&
+        pathname !== "/customer/promotion" &&
+        pathname !== "/customer/profile"
+      ) {
         router.push("/customer");
-      } else if (role === "cashier" && pathname !== "/cashier") {
+      } else if (
+        role === "cashier" &&
+        pathname !== "/cashier/home" &&
+        pathname !== "/cashier/cart" &&
+        pathname !== "/cashier/scan-qr" &&
+        pathname !== "/cashier/checkout"
+      ) {
         router.push("/cashier");
       } else if (
         role === "admin" &&

@@ -83,7 +83,9 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-sm text-white mt-6">
-            Belum Punya Account? register di sini!
+            <Link href="/auth/register-customer" className="p-2 text-white">
+              Belum Punya Account? register di sini!
+            </Link>
           </p>
 
           <p className="text-center text-sm text-white mt-6">

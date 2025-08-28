@@ -12,7 +12,7 @@ export default function Sidebar({ isSideBarOpen, onClick, onClickNav }) {
   return (
     <aside
       className={`
-              fixed lg:static h-full lg:h-auto top-0 left-0 z-40
+              fixed lg:static h-full lg:h-auto top-0 left-0 z-10
               ${
                 isSideBarOpen ? "w-64 translate-x-0" : "w-20 -translate-x-full"
               } lg:${isSideBarOpen ? "w-64" : "w-20"} lg:translate-x-0

@@ -28,7 +28,13 @@ export default function LoginPage() {
     <div className="flex h-screen bg-[url('/bg-image.png')]">
       {/* Sisi Kiri - Informasi Landing Page */}
       <div className="absolute top-10 left-20">
-        <Image src="/logo.png" width={100} height={100} alt="PointJuaro" />
+        <Image
+          src="/logo.png"
+          width={100}
+          height={100}
+          alt="PointJuaro"
+          className="w-40"
+        />
       </div>
       <div className="w-1/2 flex-col justify-center items-start p-20 relative hidden md:flex">
         <h1 className="text-5xl font-bold text-white mb-20">
@@ -48,6 +54,7 @@ export default function LoginPage() {
                 width={100}
                 height={100}
                 alt="PointJuaro"
+                className="w-35"
               />
             </div>
           </div>

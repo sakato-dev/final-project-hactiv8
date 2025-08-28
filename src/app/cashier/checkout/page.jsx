@@ -36,6 +36,10 @@ export default function CheckoutPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [merchant, setMerchant] = useState(null);
 
+  // --- Payment State ---
+  const [customerPay, setCustomerPay] = useState("");
+  const [isPaid, setIsPaid] = useState(false);
+
   const scannerRef = useRef(null);
 
   const subTotal = cartItems.reduce(
@@ -44,7 +48,31 @@ export default function CheckoutPage() {
   );
   const tax = subTotal * TAX_RATE;
   const totalOrder = subTotal + tax;
+  const change = (Number(customerPay) || 0) - totalOrder;
 
+  // --- Quick Cash & Numpad Functions ---
+  const handleQuickCash = (amt) => {
+    setCustomerPay((prev) => String(Number(prev || 0) + amt));
+  };
+
+  const handleNumpadClick = (n) => {
+    if (n === "DELETE") {
+      setCustomerPay((prev) => prev.slice(0, -1));
+    } else {
+      setCustomerPay((prev) => prev + n);
+    }
+  };
+
+  const handleConfirmPayment = () => {
+    if (Number(customerPay) >= totalOrder) {
+      setIsPaid(true);
+      Swal.fire("Pembayaran Berhasil", "Transaksi dapat disimpan", "success");
+    } else {
+      Swal.fire("Gagal", "Nominal pembayaran kurang", "error");
+    }
+  };
+
+  // --- Firestore Hooks ---
   useEffect(() => {
     if (userProfile && userProfile.merchantId) {
       const merchantRef = doc(db, "merchants", userProfile.merchantId);
@@ -71,7 +99,7 @@ export default function CheckoutPage() {
     if (isScanning) {
       scannerRef.current = new Html5QrcodeScanner(
         "qr-reader",
-        { fps: 10, qrbox: { width: 250, height: 250 } },
+        { fps: 5, qrbox: { width: 250, height: 250 } },
         false
       );
 
@@ -89,6 +117,7 @@ export default function CheckoutPage() {
     };
   }, [isScanning]);
 
+  // --- Transaction ---
   const handleTransaction = async (e) => {
     e.preventDefault();
     if (!customerId || cartItems.length === 0) {
@@ -172,10 +201,11 @@ export default function CheckoutPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-100 flex justify-center items-start p-4">
-        <div className="w-full max-w-4xl bg-white flex flex-col lg:flex-row rounded-lg shadow-lg overflow-hidden">
-          {/* Sisi Kiri - Detail Order */}
-          <div className="w-full lg:w-2/5 p-6 flex flex-col bg-gray-50 border-b lg:border-r lg:border-b-0">
+      <div className="min-h-screen flex flex-col gap-2 p-4">
+        {/* Baris Pertama: Receipt & Payment */}
+        <div className="w-full flex flex-col lg:flex-row gap-2">
+          {/* Receipt */}
+          <div className="w-full lg:w-3/7 bg-gray-50 p-6 rounded-lg shadow">
             <h2 className="text-xl font-bold mb-4">Ringkasan Pesanan</h2>
             <div className="space-y-2 flex-grow">
               {cartItems.map((item) => (
@@ -194,6 +224,7 @@ export default function CheckoutPage() {
                 <span>Subtotal</span>
                 <span>{formatRupiah(subTotal)}</span>
               </div>
+              {/* mau didelete atau enggak */}
               <div className="flex justify-between">
                 <span>Pajak (11%)</span>
                 <span>{formatRupiah(tax)}</span>
@@ -202,77 +233,154 @@ export default function CheckoutPage() {
                 <span>Total</span>
                 <span>{formatRupiah(totalOrder)}</span>
               </div>
+              {isPaid && (
+                <p className="text-center text-md mt-4 ">
+                  Thank you for your purchase!
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Sisi Kanan - Form Transaksi */}
-          <div className="w-full lg:w-3/5 p-6 sm:p-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">
-              Proses Transaksi
-            </h1>
+          {/* Payment */}
+          <div className="w-full lg:w-4/7 bg-white p-6 rounded-lg shadow">
+            <div className="space-y-6">
+              <h2 className="text-2xl font-semibold">Payment</h2>
 
-            {isScanning && (
-              <div className="w-full mb-6">
-                <div id="qr-reader" className="w-full"></div>
+              <div className="space-y-3 text-lg">
+                <div className="flex justify-between">
+                  <span className="font-medium">Total to Pay:</span>
+                  <span className="font-semibold">
+                    Rp {totalOrder.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Customer Pay:</span>
+                  <span className="font-semibold">
+                    Rp {Number(customerPay) || 0}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Change:</span>
+                  <span className="font-semibold text-green-600">
+                    Rp {change > 0 ? change.toLocaleString() : 0}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap justify-between gap-2">
+                {[10000, 20000, 50000, 100000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => handleQuickCash(amt)}
+                    className="px-6 py-3 bg-orange-100 text-orange-700 rounded-lg font-medium"
+                  >
+                    + Rp {amt.toLocaleString()}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-3 gap-1">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, ".", 0, "DELETE"].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => handleNumpadClick(n.toString())}
+                    className={`flex items-center justify-center py-4 rounded-lg text-lg font-semibold 
+        ${
+          n === "DELETE"
+            ? "bg-rose-400 text-white"
+            : "bg-neutral-100 text-gray-800"
+        }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-4">
                 <button
-                  onClick={() => setIsScanning(false)}
-                  className="w-full mt-4 p-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                  type="button"
+                  onClick={handleConfirmPayment}
+                  className={`w-full p-3 rounded-lg text-white ${
+                    isPaid ? "bg-gray-400 cursor-not-allowed" : "bg-green-600"
+                  }`}
+                  disabled={isPaid}
                 >
-                  Batal
+                  {isPaid ? "Done" : "Confirm Payment"}
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Baris Kedua: Form Transaksi + Scan */}
+        <div className="w-full bg-white p-6 rounded-lg shadow">
+          <h1 className="text-2xl font-bold text-gray-800 mb-6">
+            Proses Transaksi
+          </h1>
+
+          {isScanning && (
+            <div className="w-full mb-6">
+              <div id="qr-reader" className="w-150 h-auto"></div>
+              <button
+                onClick={() => setIsScanning(false)}
+                className="w-full mt-4 p-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+              >
+                Batal
+              </button>
+            </div>
+          )}
+
+          <form onSubmit={handleTransaction} className="w-full space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ID Pelanggan
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  value={customerId}
+                  onChange={(e) => setCustomerId(e.target.value)}
+                  placeholder="Pindai atau masukkan ID"
+                  className="flex-grow px-4 py-2 border rounded-lg"
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsScanning(true)}
+                  className="px-5 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
+                  disabled={isScanning}
+                >
+                  Scan QR
+                </button>
+              </div>
+            </div>
+
+            {merchant?.promotionSettings?.type === "point" && (
+              <div className="p-3 bg-blue-50 rounded-lg text-center">
+                <p className="text-gray-800">
+                  Poin yang akan didapat:{" "}
+                  <span className="font-bold text-blue-600">
+                    {pointsAwarded}
+                  </span>
+                </p>
+              </div>
+            )}
+            {merchant?.promotionSettings?.type === "stamp" && (
+              <div className="p-3 bg-green-50 rounded-lg text-center">
+                <p className="text-gray-800">Sistem promosi stempel aktif.</p>
               </div>
             )}
 
-            <form onSubmit={handleTransaction} className="w-full space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  ID Pelanggan
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="text"
-                    value={customerId}
-                    onChange={(e) => setCustomerId(e.target.value)}
-                    placeholder="Pindai atau masukkan ID"
-                    className="flex-grow px-4 py-2 border rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setIsScanning(true)}
-                    className="px-5 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
-                    disabled={isScanning}
-                  >
-                    Scan QR
-                  </button>
-                </div>
-              </div>
-
-              {merchant?.promotionSettings?.type === "point" && (
-                <div className="p-3 bg-blue-50 rounded-lg text-center">
-                  <p className="text-gray-800">
-                    Poin yang akan didapat:{" "}
-                    <span className="font-bold text-blue-600">
-                      {pointsAwarded}
-                    </span>
-                  </p>
-                </div>
-              )}
-              {merchant?.promotionSettings?.type === "stamp" && (
-                <div className="p-3 bg-green-50 rounded-lg text-center">
-                  <p className="text-gray-800">Sistem promosi stempel aktif.</p>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={isLoading || cartItems.length === 0}
-                className="w-full py-3 px-4 border rounded-xl text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400"
-              >
-                {isLoading ? "Memproses..." : "Simpan Transaksi"}
-              </button>
-            </form>
-            {error && <p className="mt-4 text-red-600">{error}</p>}
-          </div>
+            <button
+              type="submit"
+              disabled={isLoading || cartItems.length === 0}
+              className="w-full py-3 px-4 border rounded-xl text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400"
+            >
+              {isLoading ? "Memproses..." : "Simpan Transaksi"}
+            </button>
+          </form>
+          {error && <p className="mt-4 text-red-600">{error}</p>}
         </div>
       </div>
     </ProtectedRoute>

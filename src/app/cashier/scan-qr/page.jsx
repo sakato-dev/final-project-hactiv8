@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import ProtectedRoute from "@/components/protected-route";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/auth-context";
 import { Html5QrcodeScanner } from "html5-qrcode";
@@ -10,8 +10,8 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 export default function ScanCustomerCartPage() {
-  // --- PERBAIKAN: Gunakan replaceCart bukan addToCart ---
-  const { replaceCart, setScannedCustomerId } = useCart();
+  const { replaceCart, setScannedCustomerId, setScannedTransactionId } =
+    useCart();
   const { userProfile } = useAuth();
   const router = useRouter();
   const [error, setError] = useState("");
@@ -65,12 +65,9 @@ export default function ScanCustomerCartPage() {
         throw new Error("Transaksi ini bukan untuk toko Anda!");
       }
 
-      // --- PERBAIKAN: Ganti seluruh isi keranjang dengan data dari transaksi ---
       replaceCart(transactionData.items);
-
       setScannedCustomerId(transactionData.customerId);
-
-      // await deleteDoc(transRef);
+      setScannedTransactionId(transactionId);
 
       Swal.close();
       router.push("/cashier/checkout");
@@ -96,9 +93,7 @@ export default function ScanCustomerCartPage() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center p-4">
         <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg text-center">
-          <h1 className="text-2xl font-bold mb-4">
-            Pindai QR Code Keranjang Pelanggan
-          </h1>
+          <h1 className="text-2xl font-bold mb-4">Pindai QR Code Transaksi</h1>
           {!isScanning ? (
             <>
               <p className="text-gray-600 mb-6">

@@ -12,6 +12,7 @@ import {
   getDoc,
   setDoc,
   onSnapshot,
+  deleteDoc,
 } from "firebase/firestore";
 import { useAuth } from "@/contexts/auth-context";
 import { Html5QrcodeScanner } from "html5-qrcode";
@@ -20,11 +21,12 @@ import formatRupiah from "@/utils/FormatRupiah";
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
 
-const TAX_RATE = 0.11; // PPN 11%
+const TAX_RATE = 0.11;
 
 export default function CheckoutPage() {
   const { userProfile } = useAuth();
-  const { cartItems, clearCart, scannedCustomerId } = useCart();
+  const { cartItems, clearCart, scannedCustomerId, scannedTransactionId } =
+    useCart();
   const router = useRouter();
 
   const [customerId, setCustomerId] = useState(scannedCustomerId || "");
@@ -36,7 +38,6 @@ export default function CheckoutPage() {
 
   const scannerRef = useRef(null);
 
-  // Hitung total dari keranjang
   const subTotal = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
     0
@@ -44,7 +45,6 @@ export default function CheckoutPage() {
   const tax = subTotal * TAX_RATE;
   const totalOrder = subTotal + tax;
 
-  // Ambil data merchant dan pengaturannya
   useEffect(() => {
     if (userProfile && userProfile.merchantId) {
       const merchantRef = doc(db, "merchants", userProfile.merchantId);
@@ -57,7 +57,6 @@ export default function CheckoutPage() {
     }
   }, [userProfile]);
 
-  // Hitung poin jika sistem poin aktif
   useEffect(() => {
     if (merchant?.promotionSettings?.type === "point") {
       const rate = merchant.promotionSettings.pointsPerAmount || 1;
@@ -92,15 +91,10 @@ export default function CheckoutPage() {
 
   const handleTransaction = async (e) => {
     e.preventDefault();
-    if (!customerId) {
-      setError("Silakan pindai QR Code pelanggan terlebih dahulu.");
+    if (!customerId || cartItems.length === 0) {
+      setError("ID Pelanggan dan Keranjang tidak boleh kosong.");
       return;
     }
-    if (cartItems.length === 0) {
-      setError("Keranjang belanja kosong.");
-      return;
-    }
-
     setIsLoading(true);
     setError("");
 
@@ -133,24 +127,23 @@ export default function CheckoutPage() {
 
       if (!membershipDoc.exists()) {
         await setDoc(membershipDocRef, {
-          merchantId: merchantId,
+          merchantId,
           merchantName: merchant.name || "Toko",
           points: 0,
           stamps: 0,
           joinedAt: serverTimestamp(),
         });
       }
-
-      // Logika Poin & Stempel
       if (merchant?.promotionSettings?.type === "point") {
-        await updateDoc(membershipDocRef, { points: increment(pointsAwarded) });
+        await updateDoc(membershipDocRef, {
+          points: increment(pointsAwarded),
+        });
       } else if (merchant?.promotionSettings?.type === "stamp") {
         const currentStamps = membershipDoc.data()?.stamps || 0;
         const newStampCount = currentStamps + 1;
         const threshold = merchant.promotionSettings.stampThreshold;
-
         if (newStampCount >= threshold) {
-          await updateDoc(membershipDocRef, { stamps: 0 }); // Reset stempel
+          await updateDoc(membershipDocRef, { stamps: 0 });
           Swal.fire(
             "Hadiah!",
             `Pelanggan berhak mendapatkan: ${merchant.promotionSettings.stampReward}`,
@@ -159,6 +152,11 @@ export default function CheckoutPage() {
         } else {
           await updateDoc(membershipDocRef, { stamps: increment(1) });
         }
+      }
+
+      if (scannedTransactionId) {
+        const transRef = doc(db, "pendingTransactions", scannedTransactionId);
+        await deleteDoc(transRef);
       }
 
       Swal.fire("Berhasil!", "Transaksi berhasil disimpan.", "success");

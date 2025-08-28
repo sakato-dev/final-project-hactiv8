@@ -5,7 +5,6 @@ import { CartProvider, useCart } from "@/contexts/CartContext";
 import { auth } from "@/lib/firebase";
 import { useRouter, usePathname } from "next/navigation";
 import { FaHome, FaShoppingCart, FaQrcode } from "react-icons/fa";
-import { FiLogOut } from "react-icons/fi";
 
 function Navbar() {
   const router = useRouter();

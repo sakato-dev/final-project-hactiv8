@@ -30,7 +30,6 @@ export default function Page() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Pastikan userProfile dan merchantId tersedia
       if (userProfile && userProfile.merchantId) {
         const merchantProductsCollection = collection(
           db,

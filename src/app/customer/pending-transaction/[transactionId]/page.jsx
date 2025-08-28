@@ -2,14 +2,13 @@
 import { useEffect, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";
 import { FaCheckCircle } from "react-icons/fa";
 
 export default function PendingTransactionPage() {
   const { transactionId } = useParams();
-  const router = useRouter();
   const [transactionExists, setTransactionExists] = useState(true);
   const [loading, setLoading] = useState(true);
 
@@ -18,7 +17,6 @@ export default function PendingTransactionPage() {
 
     const transRef = doc(db, "pendingTransactions", transactionId);
     const unsubscribe = onSnapshot(transRef, (doc) => {
-      // Jika dokumen tidak ada lagi, berarti kasir sudah memprosesnya
       if (!doc.exists()) {
         setTransactionExists(false);
       }

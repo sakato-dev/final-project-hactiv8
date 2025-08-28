@@ -59,7 +59,6 @@ export default function Page() {
     router.push(`/admin/products-list/edit/${id}`);
   };
 
-  // buat menggunakan sweetalert dengan konfirmasi
   const handleDelete = async (id) => {
     Swal.fire({
       title: "Apakah kamu yakin hapus produk ini?",

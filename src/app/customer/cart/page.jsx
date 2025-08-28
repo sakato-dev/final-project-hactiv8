@@ -2,20 +2,12 @@
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/auth-context";
 import { db } from "@/lib/firebase";
-import {
-  collection,
-  doc,
-  writeBatch,
-  serverTimestamp,
-  addDoc,
-} from "firebase/firestore";
+import { collection, serverTimestamp, addDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import formatRupiah from "@/utils/FormatRupiah";
 import Swal from "sweetalert2";
 
 export default function CustomerCartPage() {
-  // --- PERBAIKAN DI SINI ---
-  // Kita perlu semua fungsi ini dari useCart, termasuk cartItems
   const { cartItems, updateQuantity, removeFromCart, clearCart } = useCart();
   const { userProfile } = useAuth();
   const router = useRouter();
@@ -36,12 +28,11 @@ export default function CustomerCartPage() {
     });
 
     try {
-      // Membuat dokumen baru di koleksi 'pendingTransactions'
       const pendingTransactionRef = await addDoc(
         collection(db, "pendingTransactions"),
         {
           customerId: userProfile.uid,
-          merchantId: cartItems[0].merchantId, // Ambil merchantId dari item pertama
+          merchantId: cartItems[0].merchantId,
           items: cartItems,
           totalAmount: subTotal,
           createdAt: serverTimestamp(),
@@ -51,7 +42,6 @@ export default function CustomerCartPage() {
 
       clearCart();
       Swal.close();
-      // Arahkan ke halaman QR baru dengan ID transaksi
       router.push(`/customer/pending-transaction/${pendingTransactionRef.id}`);
     } catch (error) {
       console.error("Error preparing payment:", error);

@@ -50,7 +50,6 @@ export default function CashierHome() {
         }));
         setProducts(productsList);
 
-        // Update kategori secara dinamis
         const uniqueCategories = [
           "All",
           ...new Set(productsList.map((p) => p.category)),
@@ -112,7 +111,7 @@ export default function CashierHome() {
               className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 flex flex-col"
             >
               <img
-                src={product.imgUrl || "https://via.placeholder.com/150"} // Fallback image
+                src={product.imgUrl || "https://via.placeholder.com/150"}
                 alt={product.title}
                 className="w-full h-40 sm:h-48 rounded-xl object-cover"
               />

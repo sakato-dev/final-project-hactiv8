@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
-// Impor yang benar dan lengkap
 import {
   collection,
   query,
@@ -23,7 +22,6 @@ export default function CustomerHome() {
   const [memberships, setMemberships] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // State untuk paginasi kartu
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
@@ -42,7 +40,6 @@ export default function CustomerHome() {
     );
     const unsubMemberships = onSnapshot(membershipsQuery, async (snapshot) => {
       const memberListPromises = snapshot.docs.map(async (docSnapshot) => {
-        // Mengganti nama variabel `doc` menjadi `docSnapshot`
         const membershipData = docSnapshot.data();
         const merchantRef = doc(db, "merchants", membershipData.merchantId);
         const merchantSnap = await getDoc(merchantRef);
@@ -78,7 +75,6 @@ export default function CustomerHome() {
     };
   }, [userProfile]);
 
-  // Logika untuk gestur geser (swipe)
   const onTouchStart = (e) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);

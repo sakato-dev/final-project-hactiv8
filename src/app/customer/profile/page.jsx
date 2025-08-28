@@ -34,7 +34,7 @@ export default function ProfilePage() {
       await updateDoc(userDocRef, {
         name: displayName.trim(),
       });
-      setIsEditing(false); // Keluar dari mode edit setelah menyimpan
+      setIsEditing(false);
     } catch (error) {
       console.error("Gagal memperbarui nama:", error);
       alert("Gagal menyimpan perubahan.");

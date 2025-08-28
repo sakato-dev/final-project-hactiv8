@@ -7,6 +7,7 @@ const CartContext = createContext();
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
   const [scannedCustomerId, setScannedCustomerId] = useState(null);
+  const [scannedTransactionId, setScannedTransactionId] = useState(null);
 
   const isDifferentMerchant = (merchantId) => {
     return cartItems.length > 0 && cartItems[0].merchantId !== merchantId;
@@ -49,7 +50,6 @@ export function CartProvider({ children }) {
     });
   };
 
-  // --- FUNGSI BARU UNTUK MENGGANTI ISI KERANJANG ---
   const replaceCart = (newItems) => {
     setCartItems(newItems);
   };
@@ -81,6 +81,7 @@ export function CartProvider({ children }) {
   const clearCart = () => {
     setCartItems([]);
     setScannedCustomerId(null);
+    setScannedTransactionId(null);
   };
 
   return (
@@ -88,13 +89,15 @@ export function CartProvider({ children }) {
       value={{
         cartItems,
         addToCart,
-        replaceCart, // <-- Ekspor fungsi baru
+        replaceCart,
         updateQuantity,
         removeFromCart,
         cartCount,
         clearCart,
         scannedCustomerId,
         setScannedCustomerId,
+        scannedTransactionId,
+        setScannedTransactionId,
       }}
     >
       {children}

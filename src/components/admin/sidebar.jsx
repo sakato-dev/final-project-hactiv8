@@ -4,11 +4,10 @@ import Link from "next/link";
 import React from "react";
 import { BiMenu } from "react-icons/bi";
 import { BsCart, BsGear, BsMailbox } from "react-icons/bs";
-import { HiHome } from "react-icons/hi";
 import { IoAdd } from "react-icons/io5";
 import { MdDashboard } from "react-icons/md";
 
-export default function Sidebar({ isSideBarOpen, onClick, onClickNav }) {
+export default function Sidebar({ isSideBarOpen, onClick }) {
   return (
     <aside
       className={`
@@ -30,7 +29,6 @@ export default function Sidebar({ isSideBarOpen, onClick, onClickNav }) {
 
       {/* Navigation Links */}
       <nav className="space-y-4 flex-1">
-        {/* Home Link */}
         <Link
           href="/admin"
           className={`flex items-center gap-4 w-full p-3 rounded-lg
@@ -51,7 +49,6 @@ export default function Sidebar({ isSideBarOpen, onClick, onClickNav }) {
           </span>
         </Link>
 
-        {/* all Staff*/}
         <Link
           href={"/admin/staff"}
           className={`flex items-center gap-4 w-full p-3 rounded-lg
@@ -72,7 +69,6 @@ export default function Sidebar({ isSideBarOpen, onClick, onClickNav }) {
           </span>
         </Link>
 
-        {/* Order List link */}
         <Link
           href={"/admin/products-list"}
           className={`flex items-center gap-4 w-full p-3 rounded-lg
@@ -93,7 +89,6 @@ export default function Sidebar({ isSideBarOpen, onClick, onClickNav }) {
           </span>
         </Link>
 
-        {/* contact us message */}
         <Link
           href={"/cashier/home"}
           className={`flex items-center gap-4 w-full p-3 rounded-lg

@@ -1,11 +1,62 @@
 "use client";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import formatRupiah from "@/utils/FormatRupiah";
+import { useAuth } from "@/contexts/auth-context";
 
-export default function page() {
+export default function Page() {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const router = useRouter();
+  const { userProfile } = useAuth();
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (userProfile && userProfile.merchantId) {
+        setLoading(true);
+        const productsCollection = collection(
+          db,
+          "merchants",
+          userProfile.merchantId,
+          "products"
+        );
+        const productsSnapshot = await getDocs(productsCollection);
+        const productsList = productsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setProducts(productsList);
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [userProfile]);
+
+  const handleEdit = (id) => {
+    router.push(`/admin/products-list/edit/${id}`);
+  };
+
+  const handleDelete = async (id) => {
+    const confirmation = window.confirm(
+      "Apakah Anda yakin ingin menghapus produk ini?"
+    );
+    if (confirmation) {
+      try {
+        await deleteDoc(
+          doc(db, "merchants", userProfile.merchantId, "products", id)
+        );
+        setProducts(products.filter((product) => product.id !== id));
+        alert("Produk berhasil dihapus!");
+      } catch (error) {
+        console.error("Error deleting product: ", error);
+        alert("Gagal menghapus produk.");
+      }
+    }
+  };
 
   return (
     <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
@@ -22,7 +73,6 @@ export default function page() {
                 Category
               </th>
               <th className="px-3 py-2 sm:px-6 sm:py-3">Price</th>
-              <th className="px-3 py-2 sm:px-6 sm:py-3">Stock</th>
               <th className="px-3 py-2 sm:px-6 sm:py-3">Action</th>
             </tr>
           </thead>
@@ -39,7 +89,7 @@ export default function page() {
                   </div>
                 </td>
               </tr>
-            ) : filteredProducts.length === 0 ? (
+            ) : products.length === 0 ? (
               <tr>
                 <td
                   colSpan="7"
@@ -49,7 +99,7 @@ export default function page() {
                 </td>
               </tr>
             ) : (
-              filteredProducts.map((item, index) => (
+              products.map((item, index) => (
                 <tr
                   key={item.id}
                   className="border-t hover:bg-gray-50 dark:hover:bg-gray-700 text-black dark:text-white"
@@ -73,9 +123,7 @@ export default function page() {
                   <td className="px-3 py-2 border-r sm:px-6 sm:py-3">
                     {item.price ? formatRupiah(item.price) : "0"}
                   </td>
-                  <td className="px-3 py-2 border-r sm:px-6 sm:py-3">
-                    {item.stock ? formatAngka(item.stock) : "0"}
-                  </td>
+
                   <td className="px-3 py-2 space-x-1 sm:px-6 sm:py-3 sm:space-x-2">
                     <button
                       onClick={() => handleEdit(item.id)}

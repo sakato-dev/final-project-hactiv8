@@ -1,9 +1,10 @@
 "use client";
 import { useCart } from "@/contexts/CartContext";
+import formatRupiah from "@/utils/FormatRupiah";
 import Link from "next/link";
 import React from "react";
 
-function CartPage() {
+export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart } = useCart();
 
   const subTotal = cartItems.reduce(
@@ -12,89 +13,83 @@ function CartPage() {
   );
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10 ">
-      <table className="w-full bg-neutral-900  rounded-lg">
-        <thead>
-          <tr className="text-white text-left text-lg font-medium">
-            <th className="p-3">Product Detail</th>
-            <th className="p-3">Price</th>
-            <th className="p-3">Quantity</th>
-            <th className="p-3">Subtotal</th>
-            <th className="p-3">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {cartItems.map((item) => (
-            <tr key={item.id} className="bg-neutral-900 rounded-2xl">
-              <td className="p-3 flex items-start gap-4">
-                <div className="w-20 h-20 bg-neutral-800 rounded-xl overflow-hidden">
-                  <img
-                    src={item.img}
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
+    <div className="max-w-4xl mx-auto px-4 py-10">
+      <h1 className="text-2xl font-bold mb-6">Keranjang Belanja</h1>
+      {cartItems.length > 0 ? (
+        <div className="bg-white rounded-lg shadow-md p-4">
+          {/* Cart Items */}
+          <div className="space-y-4">
+            {cartItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex flex-col sm:flex-row items-start sm:items-center gap-4 border-b pb-4"
+              >
+                <img
+                  src={item.imgUrl || "https://via.placeholder.com/150"}
+                  alt={item.name}
+                  className="w-24 h-24 rounded-lg object-cover"
+                />
+                <div className="flex-grow">
+                  <h2 className="font-medium">{item.name}</h2>
+                  <p className="text-sm text-gray-600">
+                    {formatRupiah(item.price)}
+                  </p>
                 </div>
-                <div>
-                  <h2 className="text-white text-base font-medium">
-                    {item.title}
-                  </h2>
-                  <p className="text-stone-500 text-sm">{item.description}</p>
-                </div>
-              </td>
-              <td className="p-3 text-white font-semibold">
-                Rp {item.price.toLocaleString()}
-              </td>
-              <td className="p-3">
-                <div className="flex items-center gap-4 bg-white rounded-lg px-3 py-1 w-fit">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 border rounded-lg px-2 py-1">
+                    <button
+                      onClick={() => updateQuantity(item.id, "decrease")}
+                      className="font-bold"
+                    >
+                      -
+                    </button>
+                    <span>{item.quantity}</span>
+                    <button
+                      onClick={() => updateQuantity(item.id, "increase")}
+                      className="font-bold"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <p className="font-semibold w-24 text-right">
+                    {formatRupiah(item.price * item.quantity)}
+                  </p>
                   <button
-                    onClick={() => updateQuantity(item.id, "decrease")}
-                    className="text-black font-bold"
+                    onClick={() => removeFromCart(item.id)}
+                    className="text-red-500 hover:text-red-700"
                   >
-                    -
-                  </button>
-                  <span className="text-black font-semibold">
-                    {item.quantity}
-                  </span>
-                  <button
-                    onClick={() => updateQuantity(item.id, "increase")}
-                    className="text-black font-bold"
-                  >
-                    +
+                    Hapus
                   </button>
                 </div>
-              </td>
-              <td className="p-3 text-white font-semibold">
-                Rp {(item.price * item.quantity).toLocaleString()}
-              </td>
-              <td className="p-3">
-                <button
-                  onClick={() => removeFromCart(item.id)}
-                  className="text-red-400 hover:text-red-600 font-semibold"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            ))}
+          </div>
 
-      <div className="mt-10 flex flex-col items-end gap-6">
-        <div className="flex justify-between w-full max-w-sm">
-          <span className="text-white text-lg font-medium">Sub Total</span>
-          <span className="text-white text-lg font-medium">
-            Rp {subTotal.toLocaleString()}
-          </span>
+          {/* Cart Summary & Action */}
+          <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="text-lg font-bold">
+              <span>Total: </span>
+              <span>{formatRupiah(subTotal)}</span>
+            </div>
+            <Link
+              href="/cashier/checkout"
+              className="w-full sm:w-auto px-6 py-3 bg-orange-500 rounded-lg text-white font-medium hover:bg-orange-600 transition text-center"
+            >
+              Lanjutkan ke Pembayaran
+            </Link>
+          </div>
         </div>
-        <Link
-          href="/cashier/checkout"
-          className="w-60 py-3 bg-orange-500 rounded-2xl text-white text-lg font-medium hover:bg-orange-600 transition"
-        >
-          Payment
-        </Link>
-      </div>
+      ) : (
+        <div className="text-center py-10">
+          <p className="text-gray-500">Keranjang Anda masih kosong.</p>
+          <Link
+            href="/cashier/home"
+            className="mt-4 inline-block bg-blue-600 text-white px-5 py-2 rounded-lg"
+          >
+            Mulai Belanja
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
-
-export default CartPage;

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import React from "react";
 import { BiMenu } from "react-icons/bi";
-import { BsCart, BsMailbox } from "react-icons/bs";
+import { BsCart, BsGear, BsMailbox } from "react-icons/bs";
 import { HiHome } from "react-icons/hi";
 import { IoAdd } from "react-icons/io5";
 import { MdDashboard } from "react-icons/md";
@@ -114,29 +114,25 @@ export default function Sidebar({ isSideBarOpen, onClick, onClickNav }) {
           </span>
         </Link>
 
-        {/* Home Page */}
-        <button
-          onClick={() => {
-            navigate("/");
-            if (window.innerWidth < 1024) onClickNav();
-          }}
+        <Link
+          href={"/admin/settings"}
           className={`flex items-center gap-4 w-full p-3 rounded-lg
                   transition-colors duration-200
                   ${
-                    location.pathname === "/"
+                    location.pathname === "/admin/settings"
                       ? "bg-blue-600 text-white shadow-lg"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
         >
-          <HiHome className="h-6 w-6 flex-shrink-0" />
+          <BsGear className="h-6 w-6 flex-shrink-0" />
           <span
             className={`whitespace-nowrap transition-opacity duration-300 ${
               isSideBarOpen ? "opacity-100" : "lg:opacity-0 lg:hidden"
             }`}
           >
-            Home Page
+            Settings
           </span>
-        </button>
+        </Link>
       </nav>
     </aside>
   );

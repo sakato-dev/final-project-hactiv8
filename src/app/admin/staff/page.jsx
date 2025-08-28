@@ -1,76 +1,113 @@
 "use client";
 import { useAuth } from "@/contexts/auth-context";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import { auth, db } from "@/lib/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  setDoc,
+  where,
+} from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState, useCallback } from "react";
+import Swal from "sweetalert2";
 
-export default function page() {
+export default function StaffPage() {
   const [cashiers, setCashiers] = useState([]);
-  const [merchants, setMerchants] = useState([]);
+  const [merchantId, setMerchantId] = useState(null);
   const [cashierEmail, setCashierEmail] = useState("");
   const [cashierPassword, setCashierPassword] = useState("");
-  const [registeringCashier, setRegisteringCashier] = useState(false);
+  const [registering, setRegistering] = useState(false);
   const [err, setErr] = useState("");
-  const { currentUser } = useAuth();
-
-  const getMerchants = async (uid) => {
-    if (!uid) return;
-    const merchantsQuery = query(
-      collection(db, "merchants"),
-      where("ownerId", "==", uid)
-    );
-    const querySnapshot = await getDocs(merchantsQuery);
-    const merchantsList = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    setMerchants(merchantsList);
-  };
+  const { userProfile } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    getMerchants(currentUser.uid);
-  }, []);
+    if (userProfile && userProfile.merchantId) {
+      setMerchantId(userProfile.merchantId);
+    }
+  }, [userProfile]);
 
-  const handleRegisterCashier = async (e) => {
-    e.preventDefault();
-    if (merchants.length === 0) {
-      setErr("Anda harus membuat toko terlebih dahulu.");
+  useEffect(() => {
+    if (!merchantId) {
+      Swal.fire({
+        title: "Toko belum dibuat",
+        text: "Silakan buat toko terlebih dahulu.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Buat Toko",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push("/admin");
+        }
+      });
       return;
     }
-    setRegisteringCashier(true);
-    setErr("");
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        cashierEmail,
-        cashierPassword
-      );
-      const user = userCredential.user;
 
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        role: "cashier",
-        uid: user.uid,
-        merchantId: merchants[0].id,
-      });
+    const cashiersQuery = query(
+      collection(db, "users"),
+      where("merchantId", "==", merchantId),
+      where("role", "==", "cashier")
+    );
 
-      alert(`Kasir ${cashierEmail} berhasil didaftarkan!`);
-      await loadCashiers(merchants[0].id);
-      setCashierEmail("");
-      setCashierPassword("");
-    } catch (error) {
-      console.error("Error registering cashier:", error);
-      setErr(error.message);
-    } finally {
-      setRegisteringCashier(false);
-    }
-  };
+    const unsubscribe = onSnapshot(cashiersQuery, (querySnapshot) => {
+      const cashiersList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setCashiers(cashiersList);
+    });
+
+    return () => unsubscribe();
+  }, [merchantId]);
+
+  const handleRegisterCashier = useCallback(
+    async (e) => {
+      e.preventDefault();
+      if (!merchantId) {
+        setErr("Anda harus membuat toko terlebih dahulu.");
+        return;
+      }
+      setRegistering(true);
+      setErr("");
+      try {
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          cashierEmail,
+          cashierPassword
+        );
+        const user = userCredential.user;
+
+        await setDoc(doc(db, "users", user.uid), {
+          email: user.email,
+          role: "cashier",
+          uid: user.uid,
+          merchantId: merchantId,
+        });
+
+        alert(`Kasir ${cashierEmail} berhasil didaftarkan!`);
+        setCashierEmail("");
+        setCashierPassword("");
+      } catch (error) {
+        console.error("Error registering cashier:", error);
+        setErr(error.message);
+      } finally {
+        setRegistering(false);
+      }
+    },
+    [cashierEmail, cashierPassword, merchantId]
+  );
+
   return (
     <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
+      <h1 className="text-2xl font-bold text-gray-800">Manajemen Staff</h1>
 
-      <div className="my-4 border p-4 rounded-xl">
-        <h2>Staff Member</h2>
+      <div className="my-4 border p-4 rounded-xl bg-white shadow-sm">
+        <h2 className="text-xl font-semibold">Anggota Staff</h2>
         {cashiers.length > 0 ? (
           <ul className="mt-2 list-disc list-inside bg-gray-50 p-3 rounded-md">
             {cashiers.map((c) => (
@@ -80,16 +117,12 @@ export default function page() {
             ))}
           </ul>
         ) : (
-          <>
+          <div>
             <p className="text-gray-500 mt-2">Belum ada kasir terdaftar.</p>
-
             <div className="mt-6 border-t pt-4">
               <h3 className="text-lg font-semibold text-gray-800">
                 Daftarkan Kasir Baru
               </h3>
-              <p className="text-sm text-gray-600">
-                Anda hanya dapat mendaftarkan satu kasir.
-              </p>
               <form
                 onSubmit={handleRegisterCashier}
                 className="mt-4 space-y-3 max-w-sm"
@@ -112,14 +145,15 @@ export default function page() {
                 />
                 <button
                   type="submit"
-                  disabled={registeringCashier}
+                  disabled={registering}
                   className="w-full bg-green-600 text-white p-2 rounded-md hover:bg-green-700 disabled:bg-gray-400"
                 >
-                  {registeringCashier ? "Mendaftarkan..." : "Daftarkan Kasir"}
+                  {registering ? "Mendaftarkan..." : "Daftarkan Kasir"}
                 </button>
+                {err && <p className="text-red-500 text-sm mt-2">{err}</p>}
               </form>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

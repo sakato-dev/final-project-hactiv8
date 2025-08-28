@@ -17,10 +17,71 @@ import { useAuth } from "@/contexts/auth-context";
 import { FaClipboardList, FaMoneyBill, FaUsers } from "react-icons/fa";
 import formatAngka from "@/utils/FormatAngka";
 import formatRupiah from "@/utils/FormatRupiah";
-import CreateStoreModal from "@/components/admin/create-store-modal";
-import { useModal } from "./layout"; // <-- Impor hook useModal dari layout
+import Image from "next/image";
 
-export default function AdminHome() {
+// --- Komponen Form Pembuatan Toko (Inline) ---
+function CreateStoreForm({ onSave, onCancel, saving, err }) {
+  const [storeName, setStoreName] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(storeName, logoUrl);
+  };
+
+  return (
+    <div className="mt-6 border-t pt-6 animate-fadeIn">
+      <h3 className="text-lg font-semibold text-gray-800">Detail Toko Baru</h3>
+      <form onSubmit={handleSubmit} className="mt-4 space-y-4 max-w-lg mx-auto">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Nama Toko
+          </label>
+          <input
+            type="text"
+            value={storeName}
+            onChange={(e) => setStoreName(e.target.value)}
+            placeholder="Contoh: Kopi Senja"
+            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            URL Logo Toko (Opsional)
+          </label>
+          <input
+            type="url"
+            value={logoUrl}
+            onChange={(e) => setLogoUrl(e.target.value)}
+            placeholder="https://example.com/logo.png"
+            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+        {err && <p className="text-red-500 text-sm">{err}</p>}
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+          >
+            {saving ? "Menyimpan..." : "Simpan Toko"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// --- Halaman Utama Admin ---
+function AdminHome() {
   const { currentUser, loading } = useAuth();
   const [err, setErr] = useState("");
   const [merchantData, setMerchantData] = useState({
@@ -30,7 +91,7 @@ export default function AdminHome() {
     customers: [],
   });
   const [saving, setSaving] = useState(false);
-  const { openModal, closeModal } = useModal(); // <-- Gunakan context untuk kontrol modal
+  const [showCreateForm, setShowCreateForm] = useState(false); // State untuk form inline
 
   const [dataCard, setDataCard] = useState([
     {
@@ -76,7 +137,7 @@ export default function AdminHome() {
       const userDocRef = doc(db, "users", currentUser.uid);
       await setDoc(userDocRef, { merchantId: merchantRef.id }, { merge: true });
 
-      closeModal(); // <-- Tutup modal melalui context
+      setShowCreateForm(false); // Sembunyikan form setelah berhasil
     } catch (e) {
       setErr(e?.message ?? "Gagal membuat toko");
     } finally {
@@ -84,21 +145,6 @@ export default function AdminHome() {
     }
   };
 
-  // Fungsi untuk membuka modal dengan konten yang benar
-  const showCreateStoreModal = () => {
-    setErr(""); // Reset error setiap kali modal dibuka
-    openModal(
-      <CreateStoreModal
-        isOpen={true}
-        onClose={closeModal}
-        onSave={handleCreateMerchant}
-        saving={saving}
-        err={err}
-      />
-    );
-  };
-
-  // ... useEffect Anda yang lain tidak perlu diubah ...
   useEffect(() => {
     if (loading || !currentUser) return;
 
@@ -106,7 +152,6 @@ export default function AdminHome() {
       collection(db, "merchants"),
       where("ownerId", "==", currentUser.uid)
     );
-
     const unsubscribe = onSnapshot(merchantsQuery, async (snapshot) => {
       if (snapshot.empty) {
         setMerchantData({
@@ -117,24 +162,13 @@ export default function AdminHome() {
         });
         return;
       }
-
       const merchants = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
       const merchantId = merchants[0].id;
 
-      const cashiersQuery = query(
-        collection(db, "users"),
-        where("merchantId", "==", merchantId),
-        where("role", "==", "cashier")
-      );
-      const transactionsQuery = query(
-        collection(db, "transactions"),
-        where("merchantId", "==", merchantId),
-        orderBy("createdAt", "desc")
-      );
+      // ... sisa useEffect tidak berubah ...
       const productsQuery = query(
         collection(db, "merchants", merchantId, "products")
       );
-
       const unsubProducts = onSnapshot(productsQuery, (productSnapshot) => {
         setDataCard((prev) => [
           prev[0],
@@ -142,27 +176,21 @@ export default function AdminHome() {
           prev[2],
         ]);
       });
-
-      const unsubCashiers = onSnapshot(cashiersQuery, (cashierSnapshot) => {
-        const cashiers = cashierSnapshot.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }));
-        setMerchantData((prev) => ({ ...prev, cashiers }));
-      });
-
+      const transactionsQuery = query(
+        collection(db, "transactions"),
+        where("merchantId", "==", merchantId),
+        orderBy("createdAt", "desc")
+      );
       const unsubTransactions = onSnapshot(
         transactionsQuery,
         async (transSnapshot) => {
           let totalOmset = 0;
           const customerIds = new Set();
-          const transactions = transSnapshot.docs.map((d) => {
-            const data = { id: d.id, ...d.data() };
+          transSnapshot.forEach((d) => {
+            const data = d.data();
             totalOmset += data.amount;
             customerIds.add(data.customerId);
-            return data;
           });
-
           if (customerIds.size > 0) {
             const customerPromises = Array.from(customerIds).map((id) =>
               getDoc(doc(db, "users", id))
@@ -176,12 +204,14 @@ export default function AdminHome() {
               { ...prev[0], value: formatAngka(customers.length) },
               ...prev.slice(1),
             ]);
-          } else {
-            setMerchantData((prev) => ({ ...prev, customers: [] }));
-            setDataCard((prev) => [{ ...prev[0], value: 0 }, ...prev.slice(1)]);
           }
-
-          setMerchantData((prev) => ({ ...prev, transactions }));
+          setMerchantData((prev) => ({
+            ...prev,
+            transactions: transSnapshot.docs.map((d) => ({
+              id: d.id,
+              ...d.data(),
+            })),
+          }));
           setDataCard((prev) => [
             prev[0],
             prev[1],
@@ -189,18 +219,14 @@ export default function AdminHome() {
           ]);
         }
       );
-
       setMerchantData((prev) => ({ ...prev, merchants }));
-
       return () => {
-        unsubCashiers();
-        unsubTransactions();
         unsubProducts();
+        unsubTransactions();
       };
     });
-
     return () => unsubscribe();
-  }, [loading, currentUser, saving]);
+  }, [loading, currentUser]);
 
   return (
     <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
@@ -222,24 +248,42 @@ export default function AdminHome() {
               <div className="bg-white p-6 rounded-lg shadow-sm text-center">
                 <p className="text-lg">Anda belum memiliki toko.</p>
                 <button
-                  onClick={showCreateStoreModal} // Panggil fungsi ini
+                  onClick={() => setShowCreateForm(true)}
                   className="border px-6 py-2 rounded-md mt-4 bg-blue-600 text-white hover:bg-blue-700"
                 >
                   Buat Toko Sekarang
                 </button>
+
+                {showCreateForm && (
+                  <CreateStoreForm
+                    onSave={handleCreateMerchant}
+                    onCancel={() => setShowCreateForm(false)}
+                    saving={saving}
+                    err={err}
+                  />
+                )}
               </div>
             ) : (
+              // Tampilan jika sudah punya toko
               merchantData.merchants.map((m) => (
                 <div key={m.id} className="space-y-8">
                   {/* Informasi Toko & Kasir */}
                   <div className="bg-white p-6 rounded-lg shadow-sm">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900">
-                        {m.name ?? "(Tanpa nama)"}
-                      </h2>
-                      <p className="text-sm text-gray-500 mt-1">
-                        ID Toko: {m.id}
-                      </p>
+                    <div className="flex items-center gap-4">
+                      <Image
+                        src={m.logoUrl}
+                        width={100}
+                        height={100}
+                        alt={m.name}
+                      />
+                      <div className="flex flex-col">
+                        <h2 className="text-2xl font-bold text-gray-900">
+                          {m.name ?? "(Tanpa nama)"}
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-1">
+                          ID Toko: {m.id}
+                        </p>
+                      </div>
                     </div>
                     <div className="mt-6">
                       <h3 className="text-xl font-semibold text-gray-800">
@@ -342,3 +386,5 @@ export default function AdminHome() {
     </div>
   );
 }
+
+export default AdminHome;

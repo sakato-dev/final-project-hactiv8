@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaHome, FaStore, FaShoppingCart } from "react-icons/fa";
+import { FaHome, FaStore, FaShoppingCart, FaQrcode } from "react-icons/fa";
 import { useCart } from "@/contexts/CartContext";
 
 export default function CustomerNavbar() {

@@ -2,12 +2,20 @@
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/auth-context";
 import { db } from "@/lib/firebase";
-import { collection, doc, writeBatch } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  writeBatch,
+  serverTimestamp,
+  addDoc,
+} from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import formatRupiah from "@/utils/FormatRupiah";
 import Swal from "sweetalert2";
 
 export default function CustomerCartPage() {
+  // --- PERBAIKAN DI SINI ---
+  // Kita perlu semua fungsi ini dari useCart, termasuk cartItems
   const { cartItems, updateQuantity, removeFromCart, clearCart } = useCart();
   const { userProfile } = useAuth();
   const router = useRouter();
@@ -28,23 +36,23 @@ export default function CustomerCartPage() {
     });
 
     try {
-      const cartCollectionRef = collection(
-        db,
-        "users",
-        userProfile.uid,
-        "customerCart"
+      // Membuat dokumen baru di koleksi 'pendingTransactions'
+      const pendingTransactionRef = await addDoc(
+        collection(db, "pendingTransactions"),
+        {
+          customerId: userProfile.uid,
+          merchantId: cartItems[0].merchantId, // Ambil merchantId dari item pertama
+          items: cartItems,
+          totalAmount: subTotal,
+          createdAt: serverTimestamp(),
+          status: "pending",
+        }
       );
-      const batch = writeBatch(db);
 
-      cartItems.forEach((item) => {
-        const docRef = doc(cartCollectionRef, item.id);
-        batch.set(docRef, item);
-      });
-
-      await batch.commit();
       clearCart();
       Swal.close();
-      router.push("/customer/show-qr");
+      // Arahkan ke halaman QR baru dengan ID transaksi
+      router.push(`/customer/pending-transaction/${pendingTransactionRef.id}`);
     } catch (error) {
       console.error("Error preparing payment:", error);
       Swal.fire("Error", "Gagal menyiapkan pembayaran, coba lagi.", "error");
@@ -63,7 +71,8 @@ export default function CustomerCartPage() {
                 className="flex gap-4 bg-gray-800 p-3 rounded-lg items-center"
               >
                 <img
-                  src={item.imgUrl}
+                  src={item.imgUrl || "https://via.placeholder.com/150"}
+                  alt={item.name}
                   className="w-20 h-20 rounded-md object-cover"
                 />
                 <div className="flex-grow">

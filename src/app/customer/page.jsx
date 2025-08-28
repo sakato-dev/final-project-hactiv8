@@ -1,104 +1,93 @@
 "use client";
 import { useEffect, useState } from "react";
-import ProtectedRoute from "@/components/protected-route";
-import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/auth-context";
 import {
   collection,
   query,
   where,
-  getDocs,
   orderBy,
   getDoc,
   doc,
+  onSnapshot,
 } from "firebase/firestore";
-import { QRCodeSVG } from "qrcode.react";
-import { FaBell, FaUser } from "react-icons/fa";
-import CustomerTabs from "@/components/customer/customer-tabs";
-import { useRouter } from "next/navigation";
+import { db } from "@/lib/firebase";
 import Link from "next/link";
+import { FaBell, FaUser } from "react-icons/fa";
+import { QRCodeSVG } from "qrcode.react";
+import CustomerTabs from "@/components/customer/customer-tabs";
 
 export default function CustomerHome() {
-  const { currentUser, userProfile } = useAuth();
+  const { userProfile } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [memberships, setMemberships] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // State untuk paginasi kartu
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
-
-  // Minimum swipe distance
   const minSwipeDistance = 50;
 
-  const router = useRouter();
-
   useEffect(() => {
-    if (!currentUser?.uid) return;
+    if (!userProfile?.uid) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
 
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const membershipsQuery = query(
-          collection(db, "users", currentUser.uid, "memberships"),
-          orderBy("points", "desc")
-        );
-        const membershipsSnapshot = await getDocs(membershipsQuery);
-        const memberList = membershipsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setMemberships(memberList);
+    const membershipsQuery = query(
+      collection(db, "users", userProfile.uid, "memberships"),
+      orderBy("points", "desc")
+    );
+    const unsubMemberships = onSnapshot(membershipsQuery, async (snapshot) => {
+      const memberListPromises = snapshot.docs.map(async (docSnapshot) => {
+        // Mengganti nama variabel `doc` menjadi `docSnapshot`
+        const membershipData = docSnapshot.data();
+        const merchantRef = doc(db, "merchants", membershipData.merchantId);
+        const merchantSnap = await getDoc(merchantRef);
+        return {
+          id: docSnapshot.id,
+          ...membershipData,
+          promotionSettings: merchantSnap.exists()
+            ? merchantSnap.data().promotionSettings
+            : { type: "point" },
+        };
+      });
+      const memberList = await Promise.all(memberListPromises);
+      setMemberships(memberList);
+      setLoading(false);
+    });
 
-        const transactionsQuery = query(
-          collection(db, "transactions"),
-          where("customerId", "==", currentUser.uid),
-          orderBy("createdAt", "desc")
-        );
-        const transSnapshot = await getDocs(transactionsQuery);
-        const history = transSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+    const transactionsQuery = query(
+      collection(db, "transactions"),
+      where("customerId", "==", userProfile.uid),
+      orderBy("createdAt", "desc")
+    );
+    const unsubTransactions = onSnapshot(transactionsQuery, (snapshot) => {
+      const history = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setTransactions(history);
+    });
 
-        const transactionsWithMerchantName = await Promise.all(
-          history.map(async (tx) => {
-            if (!tx.merchantId) return { ...tx, merchantName: "Toko Lama" };
-            const merchantDoc = await getDoc(
-              doc(db, "merchants", tx.merchantId)
-            );
-            return {
-              ...tx,
-              merchantName: merchantDoc.exists()
-                ? merchantDoc.data().name
-                : "Toko Dihapus",
-            };
-          })
-        );
-
-        setTransactions(transactionsWithMerchantName);
-      } catch (error) {
-        console.error("Error fetching customer data:", error);
-      } finally {
-        setLoading(false);
-      }
+    return () => {
+      unsubMemberships();
+      unsubTransactions();
     };
+  }, [userProfile]);
 
-    fetchData();
-  }, [currentUser]);
-
+  // Logika untuk gestur geser (swipe)
   const onTouchStart = (e) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
   };
-
   const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
-
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
-
     if (isLeftSwipe && currentCardIndex < memberships.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1);
     }
@@ -107,11 +96,6 @@ export default function CustomerHome() {
     }
   };
 
-  const handleLogout = () => {
-    auth.signOut();
-  };
-
-  // Filter transactions for current card
   const getCurrentCardTransactions = () => {
     if (memberships.length === 0) return [];
     const currentMembership = memberships[currentCardIndex];
@@ -122,184 +106,148 @@ export default function CustomerHome() {
 
   if (loading) {
     return (
-      <ProtectedRoute>
-        <div className="flex justify-center items-center min-h-screen bg-gray-900">
-          <p className="text-white">Memuat data Anda...</p>
-        </div>
-      </ProtectedRoute>
+      <div className="flex justify-center items-center min-h-screen">
+        <p>Memuat data Anda...</p>
+      </div>
     );
   }
 
+  const currentMembership = memberships[currentCardIndex];
+  const isStampMode = currentMembership?.promotionSettings?.type === "stamp";
+
   return (
-    <ProtectedRoute>
-      <div className="bg-gray-900 min-h-screen text-white max-w-lg mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center p-4">
-          <div className="flex items-center space-x-2">
-            <img src="/logo.png" alt="Point Juaro" />
-          </div>
-          <div className="flex items-center space-x-4">
-            <FaBell className="w-8 h-8 bg-gray-600 rounded-full p-2" />
-            <Link
-              href={"/customer/profile"}
-              className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center"
-            >
-              <FaUser />
-            </Link>
-          </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <CustomerTabs />
-
-        <div className="px-4">
-          {/* Swipeable Card Section */}
-          {memberships.length > 0 ? (
-            <div className="mb-8">
-              <div
-                className="relative"
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
-              >
-                <div className="bg-gradient-to-br from-green-400 to-blue-500 p-6 rounded-2xl shadow-lg relative overflow-hidden">
-                  {/* Background Pattern */}
-                  <div className="absolute inset-0 opacity-20">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -mr-16 -mt-16"></div>
-                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full -ml-12 -mb-12"></div>
-                  </div>
-
-                  {/* Card Content */}
-                  <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-8">
-                      <div>
-                        <h3 className="text-2xl font-medium opacity-90">
-                          Card {currentCardIndex + 1}
-                        </h3>
-                      </div>
-                      <p className="opacity-80 text-2xl">Tier level</p>
-                    </div>
-
-                    <div className="mb-8">
-                      <div className="flex space-x-1 mb-4">
-                        {[...Array(4)].map((_, i) => (
-                          <span key={i} className="text-white opacity-60">
-                            ••••{" "}
-                          </span>
-                        ))}
-                        <span className="text-white font-bold text-lg">
-                          {memberships[currentCardIndex]?.points || 0}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between items-end">
-                      <div>
-                        <p className="text-xs opacity-80 mb-1">Member Name</p>
-                        <p className="font-semibold">Nama Customer</p>
-                      </div>
-                      <div className="bg-white p-2 rounded">
-                        {userProfile?.uid && (
-                          <QRCodeSVG
-                            value={userProfile.uid}
-                            size={80}
-                            bgColor="#ffffff"
-                            fgColor="#000000"
-                            level="L"
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card Indicators */}
-                {memberships.length > 1 && (
-                  <div className="flex justify-center mt-4 space-x-2">
-                    {memberships.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentCardIndex(index)}
-                        className={`w-2 h-2 rounded-full transition-colors ${
-                          index === currentCardIndex
-                            ? "bg-white"
-                            : "bg-gray-600"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="mb-8">
-              <div className="bg-gray-800 p-6 rounded-2xl text-center">
-                <p className="text-gray-400">
-                  Anda belum menjadi anggota di toko manapun.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Transaction History for Current Card */}
-          <div>
-            <div className="bg-gray-800 rounded-t-2xl p-4">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold"></span>
-                </div>
-                <div>
-                  <p className="font-medium">Nama Customer</p>
-                  <p className="text-sm text-gray-400">
-                    {memberships[currentCardIndex]?.merchantName || "Toko"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-b-2xl text-gray-900">
-              <div className="p-4">
-                {getCurrentCardTransactions().length > 0 ? (
-                  <div className="space-y-3">
-                    {getCurrentCardTransactions()
-                      .slice(0, 3)
-                      .map((tx) => (
-                        <div
-                          key={tx.id}
-                          className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0"
-                        >
-                          <div>
-                            <p className="text-sm font-medium">
-                              Rp {tx.amount.toLocaleString("id-ID")}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {tx.createdAt
-                                ? new Date(
-                                    tx.createdAt.seconds * 1000
-                                  ).toLocaleDateString("id-ID")
-                                : "Baru saja"}
-                            </p>
-                          </div>
-                          <div className="text-sm font-medium text-green-600">
-                            +{tx.pointsAwarded} poin
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500 text-center py-4">
-                    Belum ada transaksi di toko ini
-                  </p>
-                )}
-
-                <button className="w-full bg-orange-500 text-white py-3 rounded-lg mt-4 font-medium">
-                  Redeem
-                </button>
-              </div>
-            </div>
-          </div>
+    <>
+      <div className="flex justify-between items-center p-4">
+        <img src="/logo.png" alt="Point Juaro" />
+        <div className="flex items-center space-x-4">
+          <FaBell className="w-8 h-8 bg-gray-600 rounded-full p-2" />
+          <Link
+            href="/customer/profile"
+            className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center"
+          >
+            <FaUser />
+          </Link>
         </div>
       </div>
-    </ProtectedRoute>
+
+      <CustomerTabs />
+
+      <div className="px-4">
+        {memberships.length > 0 ? (
+          <div
+            className="mb-8"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
+            <div className="bg-gradient-to-br from-green-400 to-blue-500 p-6 rounded-2xl shadow-lg relative overflow-hidden">
+              <div className="relative z-10">
+                <div className="flex justify-between items-start mb-8">
+                  <h3 className="text-2xl font-medium">
+                    {currentMembership?.merchantName || "Toko"}
+                  </h3>
+                  <p className="opacity-80 text-xl capitalize">
+                    {isStampMode ? "Stamps" : "Points"}
+                  </p>
+                </div>
+                <div className="mb-8">
+                  <span className="text-white font-bold text-3xl">
+                    {isStampMode
+                      ? `${currentMembership?.stamps || 0} / ${
+                          currentMembership?.promotionSettings
+                            ?.stampThreshold || 10
+                        }`
+                      : currentMembership?.points || 0}
+                  </span>
+                  <span className="text-white ml-2">
+                    {isStampMode ? "Stempel" : "Poin"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-xs opacity-80 mb-1">Nama Member</p>
+                    <p className="font-semibold">{userProfile?.email}</p>
+                  </div>
+                  <div className="bg-white p-2 rounded">
+                    {userProfile?.uid && (
+                      <QRCodeSVG value={userProfile.uid} size={80} />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {memberships.length > 1 && (
+              <div className="flex justify-center mt-4 space-x-2">
+                {memberships.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentCardIndex(index)}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      index === currentCardIndex ? "bg-white" : "bg-gray-600"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="mb-8 bg-gray-800 p-6 rounded-2xl text-center">
+            <p className="text-gray-400">
+              Anda belum menjadi anggota di toko manapun.
+            </p>
+          </div>
+        )}
+
+        {currentMembership && (
+          <div>
+            <h2 className="text-xl font-bold mb-4">
+              Riwayat Transaksi di {currentMembership.merchantName}
+            </h2>
+            <div className="bg-gray-800 rounded-lg p-4 space-y-3">
+              {getCurrentCardTransactions().length > 0 ? (
+                getCurrentCardTransactions()
+                  .slice(0, 5)
+                  .map((tx) => (
+                    <div
+                      key={tx.id}
+                      className="flex justify-between items-center border-b border-gray-700 pb-2 last:border-b-0"
+                    >
+                      <div>
+                        <p className="font-medium">
+                          {tx.createdAt
+                            ? new Date(
+                                tx.createdAt.seconds * 1000
+                              ).toLocaleDateString("id-ID", {
+                                day: "2-digit",
+                                month: "long",
+                                year: "numeric",
+                              })
+                            : "Baru saja"}
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          Rp {tx.amount.toLocaleString("id-ID")}
+                        </p>
+                      </div>
+                      <div
+                        className={`font-semibold ${
+                          isStampMode ? "text-blue-400" : "text-green-400"
+                        }`}
+                      >
+                        {isStampMode
+                          ? "+1 Stempel"
+                          : `+${tx.pointsAwarded} Poin`}
+                      </div>
+                    </div>
+                  ))
+              ) : (
+                <p className="text-sm text-gray-400 text-center py-4">
+                  Belum ada transaksi di toko ini.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

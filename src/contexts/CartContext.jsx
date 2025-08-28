@@ -1,12 +1,36 @@
 "use client";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import Swal from "sweetalert2";
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
 
-  const addToCart = (product) => {
+  // Cek jika ada merchantId yang berbeda di keranjang
+  const isDifferentMerchant = (merchantId) => {
+    return cartItems.length > 0 && cartItems[0].merchantId !== merchantId;
+  };
+
+  const addToCart = (product, merchantId) => {
+    if (isDifferentMerchant(merchantId)) {
+      Swal.fire({
+        title: "Toko Berbeda",
+        text: "Anda hanya dapat membeli dari satu toko dalam satu waktu. Apakah Anda ingin mengosongkan keranjang dan menambahkan item ini?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ya, kosongkan!",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          setCartItems([{ ...product, quantity: 1, merchantId }]);
+          Swal.fire("Berhasil!", "Keranjang telah diperbarui.", "success");
+        }
+      });
+      return;
+    }
+
     setCartItems((prev) => {
       const existingItem = prev.find((item) => item.id === product.id);
       if (existingItem) {
@@ -16,7 +40,7 @@ export function CartProvider({ children }) {
             : item
         );
       } else {
-        return [...prev, { ...product, quantity: 1 }];
+        return [...prev, { ...product, quantity: 1, merchantId }];
       }
     });
   };

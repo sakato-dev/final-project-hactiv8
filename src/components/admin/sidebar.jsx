@@ -133,30 +133,6 @@ export default function Sidebar({ isSideBarOpen, onClick, onClickNav }) {
             Settings
           </span>
         </Link>
-
-        {/* Home Page */}
-        <button
-          onClick={() => {
-            navigate("/");
-            if (window.innerWidth < 1024) onClickNav();
-          }}
-          className={`flex items-center gap-4 w-full p-3 rounded-lg
-                  transition-colors duration-200
-                  ${
-                    location.pathname === "/"
-                      ? "bg-blue-600 text-white shadow-lg"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  }`}
-        >
-          <HiHome className="h-6 w-6 flex-shrink-0" />
-          <span
-            className={`whitespace-nowrap transition-opacity duration-300 ${
-              isSideBarOpen ? "opacity-100" : "lg:opacity-0 lg:hidden"
-            }`}
-          >
-            Home Page
-          </span>
-        </button>
       </nav>
     </aside>
   );

@@ -5,28 +5,36 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import formatRupiah from "@/utils/FormatRupiah";
-import formatAngka from "@/utils/FormatAngka";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function Page() {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
   const router = useRouter();
+  const { userProfile } = useAuth();
 
   useEffect(() => {
     const fetchProducts = async () => {
-      setLoading(true);
-      const productsCollection = collection(db, "products");
-      const productsSnapshot = await getDocs(productsCollection);
-      const productsList = productsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setProducts(productsList);
-      setLoading(false);
+      if (userProfile && userProfile.merchantId) {
+        setLoading(true);
+        const productsCollection = collection(
+          db,
+          "merchants",
+          userProfile.merchantId,
+          "products"
+        );
+        const productsSnapshot = await getDocs(productsCollection);
+        const productsList = productsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setProducts(productsList);
+        setLoading(false);
+      }
     };
 
     fetchProducts();
-  }, []);
+  }, [userProfile]);
 
   const handleEdit = (id) => {
     router.push(`/admin/products-list/edit/${id}`);
@@ -38,7 +46,9 @@ export default function Page() {
     );
     if (confirmation) {
       try {
-        await deleteDoc(doc(db, "products", id));
+        await deleteDoc(
+          doc(db, "merchants", userProfile.merchantId, "products", id)
+        );
         setProducts(products.filter((product) => product.id !== id));
         alert("Produk berhasil dihapus!");
       } catch (error) {
@@ -63,7 +73,6 @@ export default function Page() {
                 Category
               </th>
               <th className="px-3 py-2 sm:px-6 sm:py-3">Price</th>
-              <th className="px-3 py-2 sm:px-6 sm:py-3">Stock</th>
               <th className="px-3 py-2 sm:px-6 sm:py-3">Action</th>
             </tr>
           </thead>
@@ -114,9 +123,7 @@ export default function Page() {
                   <td className="px-3 py-2 border-r sm:px-6 sm:py-3">
                     {item.price ? formatRupiah(item.price) : "0"}
                   </td>
-                  <td className="px-3 py-2 border-r sm:px-6 sm:py-3">
-                    {item.stock ? formatAngka(item.stock) : "0"}
-                  </td>
+
                   <td className="px-3 py-2 space-x-1 sm:px-6 sm:py-3 sm:space-x-2">
                     <button
                       onClick={() => handleEdit(item.id)}

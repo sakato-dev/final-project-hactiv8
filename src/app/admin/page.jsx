@@ -1,145 +1,188 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { db } from "@/lib/firebase";
 import {
   collection,
   query,
   where,
-  getDocs,
+  onSnapshot,
   addDoc,
   serverTimestamp,
   doc,
   setDoc,
   orderBy,
+  getDocs,
+  getDoc,
 } from "firebase/firestore";
 import { useAuth } from "@/contexts/auth-context";
-import { FaBoxOpen, FaClipboardList, FaMoneyBill } from "react-icons/fa";
+import {
+  FaBoxOpen,
+  FaClipboardList,
+  FaMoneyBill,
+  FaUsers,
+} from "react-icons/fa";
 import formatAngka from "@/utils/FormatAngka";
 import formatRupiah from "@/utils/FormatRupiah";
 import { useRouter } from "next/navigation";
 
-export default function AdminHome() {
+function AdminHome() {
   const { currentUser, loading } = useAuth();
   const [err, setErr] = useState("");
-  const [merchants, setMerchants] = useState([]);
-  const [cashiers, setCashiers] = useState([]);
-  const [transactions, setTransactions] = useState([]);
+  const [merchantData, setMerchantData] = useState({
+    merchants: [],
+    cashiers: [],
+    transactions: [],
+    customers: [],
+  });
   const [saving, setSaving] = useState(false);
   const router = useRouter();
-
-  const dataCard = [
+  const [dataCard, setDataCard] = useState([
     {
       label: "Total Customer",
-      value: formatAngka(10),
-      icon: <FaBoxOpen className="w-6 h-6" />,
+      value: 0,
+      icon: <FaUsers className="w-6 h-6" />,
     },
     {
       label: "Total Product",
-      value: formatAngka(100032),
+      value: 0,
       icon: <FaClipboardList className="w-6 h-6" />,
     },
     {
       label: "Total Omset",
-      value: formatRupiah(123123),
+      value: formatRupiah(0),
       icon: <FaMoneyBill className="w-6 h-6" />,
     },
-  ];
+  ]);
 
-  const loadCashiers = async (merchantId) => {
-    if (!merchantId) return;
-    const cashiersQuery = query(
-      collection(db, "users"),
-      where("merchantId", "==", merchantId),
-      where("role", "==", "cashier")
-    );
-    const querySnapshot = await getDocs(cashiersQuery);
-    const cashiersList = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    setCashiers(cashiersList);
-  };
-
-  const loadTransactions = async (merchantId) => {
-    if (!merchantId) return;
-    const transQuery = query(
-      collection(db, "transactions"),
-      where("merchantId", "==", merchantId),
-      orderBy("createdAt", "desc")
-    );
-    const querySnapshot = await getDocs(transQuery);
-    const transList = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    setTransactions(transList);
-  };
-
-  const loadMerchants = async (uid) => {
-    const merchantsCol = collection(db, "merchants");
-    const ownedSnap = await getDocs(
-      query(merchantsCol, where("ownerId", "==", uid))
-    );
-    const list = ownedSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    setMerchants(list);
-
-    if (list.length > 0) {
-      const merchantId = list[0].id;
-      await loadCashiers(merchantId);
-      await loadTransactions(merchantId);
-    }
-  };
-
-  const createMerchant = async ({ name }) => {
-    if (!currentUser) throw new Error("Belum login");
-    const cleanName = (name ?? "").trim();
-    if (!cleanName) throw new Error("Nama toko wajib diisi");
-
-    const dupSnap = await getDocs(
-      query(
-        collection(db, "merchants"),
-        where("ownerId", "==", currentUser.uid)
-      )
-    );
-    if (!dupSnap.empty) throw new Error("Anda hanya dapat membuat satu toko.");
-
-    const payload = {
-      name: cleanName,
-      description: "",
-      ownerId: currentUser.uid,
-      isActive: true,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    };
-
-    const merchantRef = await addDoc(collection(db, "merchants"), payload);
-    const merchantId = merchantRef.id;
-
-    const userDocRef = doc(db, "users", currentUser.uid);
-    await setDoc(userDocRef, { merchantId: merchantId }, { merge: true });
-
-    return { id: merchantId, ...payload };
-  };
-
-  const handleCreateMerchant = async () => {
+  const handleCreateMerchant = useCallback(async () => {
     try {
       if (!currentUser) throw new Error("Belum login");
       const name = window.prompt("Masukkan nama toko Anda:");
       if (!name) return;
       setSaving(true);
-      await createMerchant({ name });
-      await loadMerchants(currentUser.uid);
+
+      const cleanName = (name ?? "").trim();
+      if (!cleanName) throw new Error("Nama toko wajib diisi");
+
+      const payload = {
+        name: cleanName,
+        description: "",
+        ownerId: currentUser.uid,
+        isActive: true,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      const merchantRef = await addDoc(collection(db, "merchants"), payload);
+      const merchantId = merchantRef.id;
+
+      const userDocRef = doc(db, "users", currentUser.uid);
+      await setDoc(userDocRef, { merchantId }, { merge: true });
+
       setErr("");
     } catch (e) {
       setErr(e?.message ?? "Gagal membuat toko");
     } finally {
       setSaving(false);
     }
-  };
+  }, [currentUser]);
 
   useEffect(() => {
     if (loading || !currentUser) return;
-    loadMerchants(currentUser.uid);
+
+    const merchantsQuery = query(
+      collection(db, "merchants"),
+      where("ownerId", "==", currentUser.uid)
+    );
+
+    const unsubscribe = onSnapshot(merchantsQuery, async (snapshot) => {
+      if (snapshot.empty) {
+        return;
+      }
+
+      const merchants = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const merchantId = merchants[0].id;
+
+      const cashiersQuery = query(
+        collection(db, "users"),
+        where("merchantId", "==", merchantId),
+        where("role", "==", "cashier")
+      );
+      const transactionsQuery = query(
+        collection(db, "transactions"),
+        where("merchantId", "==", merchantId),
+        orderBy("createdAt", "desc")
+      );
+
+      // Fetch total products
+      const productsQuery = query(
+        collection(db, "merchants", merchantId, "products")
+      );
+      const unsubProducts = onSnapshot(productsQuery, (productSnapshot) => {
+        setDataCard((prev) => [
+          prev[0],
+          { ...prev[1], value: formatAngka(productSnapshot.size) },
+          prev[2],
+        ]);
+      });
+
+      const unsubCashiers = onSnapshot(cashiersQuery, (cashierSnapshot) => {
+        const cashiers = cashierSnapshot.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }));
+        setMerchantData((prev) => ({ ...prev, cashiers }));
+      });
+
+      const unsubTransactions = onSnapshot(
+        transactionsQuery,
+        async (transSnapshot) => {
+          let totalOmset = 0;
+          const customerIds = new Set();
+          const transactions = transSnapshot.docs.map((d) => {
+            const data = { id: d.id, ...d.data() };
+            totalOmset += data.amount;
+            customerIds.add(data.customerId);
+            return data;
+          });
+
+          if (customerIds.size > 0) {
+            const customerPromises = Array.from(customerIds).map((id) =>
+              getDoc(doc(db, "users", id))
+            );
+            const customerDocs = await Promise.all(customerPromises);
+            const customers = customerDocs
+              .filter((doc) => doc.exists())
+              .map((doc) => ({ id: doc.id, ...doc.data() }));
+            setMerchantData((prev) => ({ ...prev, customers }));
+            setDataCard((prev) => [
+              { ...prev[0], value: formatAngka(customers.length) },
+              ...prev.slice(1),
+            ]);
+          } else {
+            setMerchantData((prev) => ({ ...prev, customers: [] }));
+            setDataCard((prev) => [{ ...prev[0], value: 0 }, ...prev.slice(1)]);
+          }
+
+          setMerchantData((prev) => ({ ...prev, transactions }));
+          setDataCard((prev) => [
+            prev[0],
+            prev[1],
+            { ...prev[2], value: formatRupiah(totalOmset) },
+          ]);
+        }
+      );
+
+      setMerchantData((prev) => ({ ...prev, merchants }));
+
+      return () => {
+        unsubCashiers();
+        unsubTransactions();
+        unsubProducts();
+      };
+    });
+
+    return () => unsubscribe();
   }, [loading, currentUser]);
 
   return (
@@ -175,7 +218,7 @@ export default function AdminHome() {
 
         {!loading && !err && (
           <div className="space-y-8">
-            {merchants.length === 0 ? (
+            {merchantData.merchants.length === 0 ? (
               <div className="bg-white p-6 rounded-lg shadow-sm text-center">
                 <p>Anda belum memiliki toko.</p>
                 <button
@@ -187,7 +230,7 @@ export default function AdminHome() {
                 </button>
               </div>
             ) : (
-              merchants.map((m) => (
+              merchantData.merchants.map((m) => (
                 <div key={m.id} className="space-y-8">
                   {/* Informasi Toko & Kasir */}
                   <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -201,12 +244,12 @@ export default function AdminHome() {
                     </div>
                     <div className="mt-6">
                       <h3 className="text-xl font-semibold text-gray-800">
-                        Kasir Terdaftar
+                        Pelanggan
                       </h3>
 
-                      {cashiers.length > 0 ? (
+                      {merchantData.customers.length > 0 ? (
                         <ul className="mt-2 list-disc list-inside bg-gray-50 p-3 rounded-md">
-                          {cashiers.map((c) => (
+                          {merchantData.customers.map((c) => (
                             <li key={c.id} className="text-gray-700">
                               {c.email}
                             </li>
@@ -215,7 +258,7 @@ export default function AdminHome() {
                       ) : (
                         <>
                           <p className="text-gray-500 mt-2">
-                            Belum ada kasir terdaftar.
+                            Belum ada pelanggan.
                           </p>
                         </>
                       )}
@@ -227,7 +270,7 @@ export default function AdminHome() {
                     <h2 className="text-2xl font-bold mb-4 text-gray-900">
                       Riwayat Transaksi
                     </h2>
-                    {transactions.length > 0 ? (
+                    {merchantData.transactions.length > 0 ? (
                       <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                           <thead className="bg-gray-50">
@@ -259,7 +302,7 @@ export default function AdminHome() {
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
-                            {transactions.map((tx) => (
+                            {merchantData.transactions.map((tx) => (
                               <tr key={tx.id}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                   {tx.createdAt
@@ -300,3 +343,5 @@ export default function AdminHome() {
     </div>
   );
 }
+
+export default AdminHome;

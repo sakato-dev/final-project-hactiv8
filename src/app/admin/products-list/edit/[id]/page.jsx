@@ -1,9 +1,9 @@
 "use client";
-import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import React, { useState, useEffect } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { db } from "@/lib/firebase";
-import { collection, addDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useAuth } from "@/contexts/auth-context";
 
 export default function Page() {
@@ -16,7 +16,29 @@ export default function Page() {
     imgUrl: "",
   });
   const router = useRouter();
+  const { id } = useParams();
   const { userProfile } = useAuth();
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (id && userProfile && userProfile.merchantId) {
+        const docRef = doc(
+          db,
+          "merchants",
+          userProfile.merchantId,
+          "products",
+          id
+        );
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setProduct(docSnap.data());
+        } else {
+          console.log("No such document!");
+        }
+      }
+    };
+    fetchProduct();
+  }, [id, userProfile]);
 
   const handleChange = (e) => {
     setProduct({
@@ -29,26 +51,22 @@ export default function Page() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Pastikan userProfile dan merchantId tersedia
-      if (userProfile && userProfile.merchantId) {
-        const merchantProductsCollection = collection(
-          db,
-          "merchants",
-          userProfile.merchantId,
-          "products"
-        );
-        await addDoc(merchantProductsCollection, {
-          ...product,
-          price: Number(product.price),
-        });
-        alert("Produk berhasil ditambahkan!");
-        router.push("/admin/products-list");
-      } else {
-        throw new Error("Merchant ID tidak ditemukan.");
-      }
+      const docRef = doc(
+        db,
+        "merchants",
+        userProfile.merchantId,
+        "products",
+        id
+      );
+      await updateDoc(docRef, {
+        ...product,
+        price: Number(product.price),
+      });
+      alert("Produk berhasil diperbarui!");
+      router.push("/admin/products-list");
     } catch (error) {
-      console.error("Error adding product: ", error);
-      alert("Gagal menambahkan produk.");
+      console.error("Error updating product: ", error);
+      alert("Gagal memperbarui produk.");
     } finally {
       setLoading(false);
     }
@@ -63,7 +81,7 @@ export default function Page() {
             className="cursor-pointer text-gray-800 dark:text-white"
           />
           <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">
-            Add New Product
+            Edit Product
           </h1>
         </div>
 

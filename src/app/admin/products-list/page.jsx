@@ -59,28 +59,50 @@ export default function Page() {
     router.push(`/admin/products-list/edit/${id}`);
   };
 
+  // buat menggunakan sweetalert dengan konfirmasi
   const handleDelete = async (id) => {
-    const confirmation = window.confirm(
-      "Apakah Anda yakin ingin menghapus produk ini?"
-    );
-    if (confirmation) {
-      try {
-        await deleteDoc(
-          doc(db, "merchants", userProfile.merchantId, "products", id)
-        );
-        setProducts(products.filter((product) => product.id !== id));
-        alert("Produk berhasil dihapus!");
-      } catch (error) {
-        console.error("Error deleting product: ", error);
-        alert("Gagal menghapus produk.");
+    Swal.fire({
+      title: "Apakah kamu yakin hapus produk ini?",
+      text: "Anda tidak dapat mengembalikan produk ini!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Ya, hapus!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const productDoc = doc(
+            db,
+            "merchants",
+            userProfile.merchantId,
+            "products",
+            id
+          );
+          await deleteDoc(productDoc);
+          setProducts((prevProducts) =>
+            prevProducts.filter((product) => product.id !== id)
+          );
+          Swal.fire("Deleted!", "Your product has been deleted.", "success");
+        } catch (error) {
+          console.error("Error deleting product: ", error);
+          alert("Gagal menghapus produk.");
+        }
       }
-    }
+    });
   };
 
   return (
     <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
-      <Link href="/admin/products-list/new">Add new product</Link>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
+        <Link
+          href="/admin/products-list/new"
+          className="p-2 bg-blue-500 text-white rounded-lg"
+        >
+          Add new product
+        </Link>
+      </div>
       <div className="overflow-x-auto mt-6 rounded-xl border border-black bg-white dark:bg-gray-800">
         <table className="table-auto w-full text-left text-sm">
           <thead className="bg-gray-100 dark:bg-gray-700 text-black dark:text-gray-300 uppercase">

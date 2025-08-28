@@ -6,12 +6,31 @@ import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import formatRupiah from "@/utils/FormatRupiah";
 import { useAuth } from "@/contexts/auth-context";
+import Swal from "sweetalert2";
 
 export default function Page() {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
   const router = useRouter();
   const { userProfile } = useAuth();
+
+  useEffect(() => {
+    if (!userProfile || !userProfile.merchantId) {
+      Swal.fire({
+        title: "Toko belum dibuat",
+        text: "Silakan buat toko terlebih dahulu.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Buat Toko",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push("/admin");
+        }
+      });
+    }
+  }, [userProfile, router]);
 
   useEffect(() => {
     const fetchProducts = async () => {

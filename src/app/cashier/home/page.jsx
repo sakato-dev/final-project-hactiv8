@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import { collection, onSnapshot } from "firebase/firestore";
 import { useAuth } from "@/contexts/auth-context";
 import formatRupiah from "@/utils/FormatRupiah";
+import { useRouter } from "next/navigation";
 
 export default function CashierHome() {
   const { addToCart } = useCart();
@@ -14,6 +15,25 @@ export default function CashierHome() {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState(["All"]);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!userProfile || !userProfile.merchantId) {
+      Swal.fire({
+        title: "Toko belum dibuat",
+        text: "Silakan buat toko terlebih dahulu.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Buat Toko",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push("/admin");
+        }
+      });
+    }
+  }, [userProfile]);
 
   useEffect(() => {
     if (userProfile && userProfile.merchantId) {

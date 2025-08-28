@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/auth-context";
+import Swal from "sweetalert2";
+import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
   const { userProfile } = useAuth();
@@ -17,6 +19,26 @@ export default function SettingsPage() {
   const [pointsPerAmount, setPointsPerAmount] = useState(1000);
   const [stampThreshold, setStampThreshold] = useState(10);
   const [stampReward, setStampReward] = useState("");
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!userProfile || !userProfile.merchantId) {
+      Swal.fire({
+        title: "Toko belum dibuat",
+        text: "Silakan buat toko terlebih dahulu.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Buat Toko",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push("/admin");
+        }
+      });
+    }
+  }, [userProfile, router]);
 
   useEffect(() => {
     if (userProfile && userProfile.merchantId) {
@@ -65,7 +87,7 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-8 min-h-screen">
         <p>Memuat pengaturan...</p>
       </div>
     );

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
 import {
   collection,
@@ -11,20 +11,76 @@ import {
   doc,
   setDoc,
   orderBy,
-  getDocs,
   getDoc,
 } from "firebase/firestore";
 import { useAuth } from "@/contexts/auth-context";
-import {
-  FaBoxOpen,
-  FaClipboardList,
-  FaMoneyBill,
-  FaUsers,
-} from "react-icons/fa";
+import { FaClipboardList, FaMoneyBill, FaUsers } from "react-icons/fa";
 import formatAngka from "@/utils/FormatAngka";
 import formatRupiah from "@/utils/FormatRupiah";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
 
+// --- Komponen Form Pembuatan Toko (Inline) ---
+function CreateStoreForm({ onSave, onCancel, saving, err }) {
+  const [storeName, setStoreName] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(storeName, logoUrl);
+  };
+
+  return (
+    <div className="mt-6 border-t pt-6 animate-fadeIn">
+      <h3 className="text-lg font-semibold text-gray-800">Detail Toko Baru</h3>
+      <form onSubmit={handleSubmit} className="mt-4 space-y-4 max-w-lg mx-auto">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Nama Toko
+          </label>
+          <input
+            type="text"
+            value={storeName}
+            onChange={(e) => setStoreName(e.target.value)}
+            placeholder="Contoh: Kopi Senja"
+            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            URL Logo Toko (Opsional)
+          </label>
+          <input
+            type="url"
+            value={logoUrl}
+            onChange={(e) => setLogoUrl(e.target.value)}
+            placeholder="https://example.com/logo.png"
+            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+        {err && <p className="text-red-500 text-sm">{err}</p>}
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+          >
+            {saving ? "Menyimpan..." : "Simpan Toko"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// --- Halaman Utama Admin ---
 function AdminHome() {
   const { currentUser, loading } = useAuth();
   const [err, setErr] = useState("");
@@ -35,7 +91,8 @@ function AdminHome() {
     customers: [],
   });
   const [saving, setSaving] = useState(false);
-  const router = useRouter();
+  const [showCreateForm, setShowCreateForm] = useState(false); // State untuk form inline
+
   const [dataCard, setDataCard] = useState([
     {
       label: "Total Customer",
@@ -54,18 +111,21 @@ function AdminHome() {
     },
   ]);
 
-  const handleCreateMerchant = useCallback(async () => {
+  const handleCreateMerchant = async (storeName, logoUrl) => {
     try {
       if (!currentUser) throw new Error("Belum login");
-      const name = window.prompt("Masukkan nama toko Anda:");
-      if (!name) return;
-      setSaving(true);
+      const cleanName = (storeName || "").trim();
+      if (!cleanName) {
+        setErr("Nama toko wajib diisi");
+        return;
+      }
 
-      const cleanName = (name ?? "").trim();
-      if (!cleanName) throw new Error("Nama toko wajib diisi");
+      setSaving(true);
+      setErr("");
 
       const payload = {
         name: cleanName,
+        logoUrl: logoUrl || "",
         description: "",
         ownerId: currentUser.uid,
         isActive: true,
@@ -74,18 +134,16 @@ function AdminHome() {
       };
 
       const merchantRef = await addDoc(collection(db, "merchants"), payload);
-      const merchantId = merchantRef.id;
-
       const userDocRef = doc(db, "users", currentUser.uid);
-      await setDoc(userDocRef, { merchantId }, { merge: true });
+      await setDoc(userDocRef, { merchantId: merchantRef.id }, { merge: true });
 
-      setErr("");
+      setShowCreateForm(false); // Sembunyikan form setelah berhasil
     } catch (e) {
       setErr(e?.message ?? "Gagal membuat toko");
     } finally {
       setSaving(false);
     }
-  }, [currentUser]);
+  };
 
   useEffect(() => {
     if (loading || !currentUser) return;
@@ -94,27 +152,20 @@ function AdminHome() {
       collection(db, "merchants"),
       where("ownerId", "==", currentUser.uid)
     );
-
     const unsubscribe = onSnapshot(merchantsQuery, async (snapshot) => {
       if (snapshot.empty) {
+        setMerchantData({
+          merchants: [],
+          cashiers: [],
+          transactions: [],
+          customers: [],
+        });
         return;
       }
-
       const merchants = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
       const merchantId = merchants[0].id;
 
-      const cashiersQuery = query(
-        collection(db, "users"),
-        where("merchantId", "==", merchantId),
-        where("role", "==", "cashier")
-      );
-      const transactionsQuery = query(
-        collection(db, "transactions"),
-        where("merchantId", "==", merchantId),
-        orderBy("createdAt", "desc")
-      );
-
-      // Fetch total products
+      // ... sisa useEffect tidak berubah ...
       const productsQuery = query(
         collection(db, "merchants", merchantId, "products")
       );
@@ -125,27 +176,21 @@ function AdminHome() {
           prev[2],
         ]);
       });
-
-      const unsubCashiers = onSnapshot(cashiersQuery, (cashierSnapshot) => {
-        const cashiers = cashierSnapshot.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }));
-        setMerchantData((prev) => ({ ...prev, cashiers }));
-      });
-
+      const transactionsQuery = query(
+        collection(db, "transactions"),
+        where("merchantId", "==", merchantId),
+        orderBy("createdAt", "desc")
+      );
       const unsubTransactions = onSnapshot(
         transactionsQuery,
         async (transSnapshot) => {
           let totalOmset = 0;
           const customerIds = new Set();
-          const transactions = transSnapshot.docs.map((d) => {
-            const data = { id: d.id, ...d.data() };
+          transSnapshot.forEach((d) => {
+            const data = d.data();
             totalOmset += data.amount;
             customerIds.add(data.customerId);
-            return data;
           });
-
           if (customerIds.size > 0) {
             const customerPromises = Array.from(customerIds).map((id) =>
               getDoc(doc(db, "users", id))
@@ -159,12 +204,14 @@ function AdminHome() {
               { ...prev[0], value: formatAngka(customers.length) },
               ...prev.slice(1),
             ]);
-          } else {
-            setMerchantData((prev) => ({ ...prev, customers: [] }));
-            setDataCard((prev) => [{ ...prev[0], value: 0 }, ...prev.slice(1)]);
           }
-
-          setMerchantData((prev) => ({ ...prev, transactions }));
+          setMerchantData((prev) => ({
+            ...prev,
+            transactions: transSnapshot.docs.map((d) => ({
+              id: d.id,
+              ...d.data(),
+            })),
+          }));
           setDataCard((prev) => [
             prev[0],
             prev[1],
@@ -172,75 +219,71 @@ function AdminHome() {
           ]);
         }
       );
-
       setMerchantData((prev) => ({ ...prev, merchants }));
-
       return () => {
-        unsubCashiers();
-        unsubTransactions();
         unsubProducts();
+        unsubTransactions();
       };
     });
-
     return () => unsubscribe();
   }, [loading, currentUser]);
 
   return (
     <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
-      <div className="">
+      <div>
         <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
-
         {loading && <p>Memuat...</p>}
-        {err && !loading && (
-          <p className="text-red-600 bg-red-100 p-3 rounded-md">{err}</p>
-        )}
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-4">
           {dataCard.map((item, i) => (
-            <div
-              key={i}
-              className={`bg-gray-100 dark:bg-gray-800 p-4 rounded-xl shadow hover:shadow-md flex flex-col items-center transition-all duration-300 ease-in-out ${
-                item.path ? "cursor-pointer" : ""
-              }`}
-            >
-              <div className="text-indigo-600 dark:text-indigo-400 mb-2">
-                {item.icon}
-              </div>
-              <h2 className="text-sm text-gray-600 dark:text-gray-300">
-                {item.label}
-              </h2>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {item.value}
-              </p>
+            <div key={i} className="bg-white p-4 rounded-xl shadow">
+              <div className="text-indigo-600 mb-2">{item.icon}</div>
+              <h2 className="text-sm text-gray-600">{item.label}</h2>
+              <p className="text-2xl font-bold text-gray-900">{item.value}</p>
             </div>
           ))}
         </div>
-
-        {!loading && !err && (
+        {!loading && (
           <div className="space-y-8">
             {merchantData.merchants.length === 0 ? (
               <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-                <p>Anda belum memiliki toko.</p>
+                <p className="text-lg">Anda belum memiliki toko.</p>
                 <button
-                  onClick={handleCreateMerchant}
-                  disabled={saving}
-                  className="border px-4 py-2 rounded-md mt-4 bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400"
+                  onClick={() => setShowCreateForm(true)}
+                  className="border px-6 py-2 rounded-md mt-4 bg-blue-600 text-white hover:bg-blue-700"
                 >
-                  {saving ? "Menyimpan..." : "Buat Toko Sekarang"}
+                  Buat Toko Sekarang
                 </button>
+
+                {showCreateForm && (
+                  <CreateStoreForm
+                    onSave={handleCreateMerchant}
+                    onCancel={() => setShowCreateForm(false)}
+                    saving={saving}
+                    err={err}
+                  />
+                )}
               </div>
             ) : (
+              // Tampilan jika sudah punya toko
               merchantData.merchants.map((m) => (
                 <div key={m.id} className="space-y-8">
                   {/* Informasi Toko & Kasir */}
                   <div className="bg-white p-6 rounded-lg shadow-sm">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900">
-                        {m.name ?? "(Tanpa nama)"}
-                      </h2>
-                      <p className="text-sm text-gray-500 mt-1">
-                        ID Toko: {m.id}
-                      </p>
+                    <div className="flex items-center gap-4">
+                      <Image
+                        src={m.logoUrl}
+                        width={100}
+                        height={100}
+                        alt={m.name}
+                      />
+                      <div className="flex flex-col">
+                        <h2 className="text-2xl font-bold text-gray-900">
+                          {m.name ?? "(Tanpa nama)"}
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-1">
+                          ID Toko: {m.id}
+                        </p>
+                      </div>
                     </div>
                     <div className="mt-6">
                       <h3 className="text-xl font-semibold text-gray-800">

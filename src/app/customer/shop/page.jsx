@@ -29,6 +29,9 @@ export default function ShopPage() {
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-6">Pilih Toko</h1>
       <div className="space-y-4">
+        {merchants.length === 0 && (
+          <p className="text-center p-10">Tidak ada toko yang tersedia.</p>
+        )}
         {merchants.map((merchant) => (
           <Link key={merchant.id} href={`/customer/shop/${merchant.id}`}>
             <div className="bg-gray-800 p-4 rounded-lg flex items-center gap-4 hover:bg-gray-700 transition">

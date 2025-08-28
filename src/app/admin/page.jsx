@@ -19,7 +19,6 @@ import formatAngka from "@/utils/FormatAngka";
 import formatRupiah from "@/utils/FormatRupiah";
 import Image from "next/image";
 
-// --- Komponen Form Pembuatan Toko (Inline) ---
 function CreateStoreForm({ onSave, onCancel, saving, err }) {
   const [storeName, setStoreName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
@@ -80,7 +79,6 @@ function CreateStoreForm({ onSave, onCancel, saving, err }) {
   );
 }
 
-// --- Halaman Utama Admin ---
 function AdminHome() {
   const { currentUser, loading } = useAuth();
   const [err, setErr] = useState("");
@@ -91,7 +89,7 @@ function AdminHome() {
     customers: [],
   });
   const [saving, setSaving] = useState(false);
-  const [showCreateForm, setShowCreateForm] = useState(false); // State untuk form inline
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const [dataCard, setDataCard] = useState([
     {
@@ -137,7 +135,7 @@ function AdminHome() {
       const userDocRef = doc(db, "users", currentUser.uid);
       await setDoc(userDocRef, { merchantId: merchantRef.id }, { merge: true });
 
-      setShowCreateForm(false); // Sembunyikan form setelah berhasil
+      setShowCreateForm(false);
     } catch (e) {
       setErr(e?.message ?? "Gagal membuat toko");
     } finally {
@@ -165,7 +163,6 @@ function AdminHome() {
       const merchants = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
       const merchantId = merchants[0].id;
 
-      // ... sisa useEffect tidak berubah ...
       const productsQuery = query(
         collection(db, "merchants", merchantId, "products")
       );
@@ -264,7 +261,6 @@ function AdminHome() {
                 )}
               </div>
             ) : (
-              // Tampilan jika sudah punya toko
               merchantData.merchants.map((m) => (
                 <div key={m.id} className="space-y-8">
                   {/* Informasi Toko & Kasir */}

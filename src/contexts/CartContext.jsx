@@ -1,22 +1,24 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 import Swal from "sweetalert2";
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
+  const [scannedCustomerId, setScannedCustomerId] = useState(null);
+  const [scannedTransactionId, setScannedTransactionId] = useState(null);
 
-  // Cek jika ada merchantId yang berbeda di keranjang
   const isDifferentMerchant = (merchantId) => {
     return cartItems.length > 0 && cartItems[0].merchantId !== merchantId;
   };
 
   const addToCart = (product, merchantId) => {
-    if (isDifferentMerchant(merchantId)) {
+    const finalMerchantId = merchantId || product.merchantId;
+    if (isDifferentMerchant(finalMerchantId)) {
       Swal.fire({
         title: "Toko Berbeda",
-        text: "Anda hanya dapat membeli dari satu toko dalam satu waktu. Apakah Anda ingin mengosongkan keranjang dan menambahkan item ini?",
+        text: "Anda hanya dapat membeli dari satu toko dalam satu waktu. Kosongkan keranjang?",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -24,13 +26,13 @@ export function CartProvider({ children }) {
         confirmButtonText: "Ya, kosongkan!",
       }).then((result) => {
         if (result.isConfirmed) {
-          setCartItems([{ ...product, quantity: 1, merchantId }]);
-          Swal.fire("Berhasil!", "Keranjang telah diperbarui.", "success");
+          setCartItems([
+            { ...product, quantity: 1, merchantId: finalMerchantId },
+          ]);
         }
       });
       return;
     }
-
     setCartItems((prev) => {
       const existingItem = prev.find((item) => item.id === product.id);
       if (existingItem) {
@@ -40,9 +42,16 @@ export function CartProvider({ children }) {
             : item
         );
       } else {
-        return [...prev, { ...product, quantity: 1, merchantId }];
+        return [
+          ...prev,
+          { ...product, quantity: 1, merchantId: finalMerchantId },
+        ];
       }
     });
+  };
+
+  const replaceCart = (newItems) => {
+    setCartItems(newItems);
   };
 
   const updateQuantity = (id, type) => {
@@ -71,6 +80,8 @@ export function CartProvider({ children }) {
 
   const clearCart = () => {
     setCartItems([]);
+    setScannedCustomerId(null);
+    setScannedTransactionId(null);
   };
 
   return (
@@ -78,10 +89,15 @@ export function CartProvider({ children }) {
       value={{
         cartItems,
         addToCart,
+        replaceCart,
         updateQuantity,
         removeFromCart,
         cartCount,
         clearCart,
+        scannedCustomerId,
+        setScannedCustomerId,
+        scannedTransactionId,
+        setScannedTransactionId,
       }}
     >
       {children}

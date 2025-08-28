@@ -5,6 +5,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import { db } from "@/lib/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { useAuth } from "@/contexts/auth-context";
+import Swal from "sweetalert2";
 
 export default function Page() {
   const [loading, setLoading] = useState(false);
@@ -29,7 +30,6 @@ export default function Page() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Pastikan userProfile dan merchantId tersedia
       if (userProfile && userProfile.merchantId) {
         const merchantProductsCollection = collection(
           db,
@@ -41,7 +41,7 @@ export default function Page() {
           ...product,
           price: Number(product.price),
         });
-        alert("Produk berhasil ditambahkan!");
+        Swal.fire("Produk berhasil ditambahkan!");
         router.push("/admin/products-list");
       } else {
         throw new Error("Merchant ID tidak ditemukan.");

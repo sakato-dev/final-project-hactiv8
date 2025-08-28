@@ -5,11 +5,10 @@ import { db } from "@/lib/firebase";
 import { useCart } from "@/contexts/CartContext";
 import formatRupiah from "@/utils/FormatRupiah";
 import Swal from "sweetalert2";
-import { useParams } from "next/navigation"; // 1. Impor useParams
+import { useParams } from "next/navigation";
 
 export default function MerchantProductsPage() {
-  // 2. Hapus props { params }
-  const { merchantId } = useParams(); // 3. Gunakan useParams untuk mendapatkan merchantId
+  const { merchantId } = useParams();
   const { addToCart } = useCart();
   const [merchant, setMerchant] = useState(null);
   const [products, setProducts] = useState([]);

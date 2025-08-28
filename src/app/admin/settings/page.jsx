@@ -12,7 +12,6 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // State untuk form
   const [storeName, setStoreName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [promoType, setPromoType] = useState("point");
@@ -47,7 +46,6 @@ export default function SettingsPage() {
         if (doc.exists()) {
           const data = doc.data();
           setMerchant({ id: doc.id, ...data });
-          // Set state form dari data merchant
           setStoreName(data.name || "");
           setLogoUrl(data.logoUrl || "");
           setPromoType(data.promotionSettings?.type || "point");

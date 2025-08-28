@@ -2,27 +2,23 @@
 import { useEffect, useRef, useState } from "react";
 import ProtectedRoute from "@/components/protected-route";
 import { db } from "@/lib/firebase";
-import {
-  collection,
-  getDocs,
-  doc,
-  deleteDoc,
-  writeBatch,
-} from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/auth-context";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 export default function ScanCustomerCartPage() {
-  const { clearCart, addToCart } = useCart();
+  const { replaceCart, setScannedCustomerId, setScannedTransactionId } =
+    useCart();
+  const { userProfile } = useAuth();
   const router = useRouter();
   const [error, setError] = useState("");
-  const [isScanning, setIsScanning] = useState(false); // Diubah menjadi false
+  const [isScanning, setIsScanning] = useState(false);
   const scannerRef = useRef(null);
 
   useEffect(() => {
-    // Hanya jalankan scanner jika isScanning adalah true
     if (isScanning) {
       scannerRef.current = new Html5QrcodeScanner(
         "qr-reader",
@@ -31,15 +27,11 @@ export default function ScanCustomerCartPage() {
       );
       scannerRef.current.render(onScanSuccess, onScanError);
     } else {
-      // Hentikan scanner jika sedang berjalan
       if (scannerRef.current && scannerRef.current.getState() === 2) {
-        scannerRef.current.clear().catch(() => {
-          console.log("first");
-        });
+        scannerRef.current.clear().catch(() => {});
       }
     }
 
-    // Cleanup function untuk memberhentikan scanner saat komponen di-unmount
     return () => {
       if (scannerRef.current) {
         scannerRef.current.clear().catch(() => {});
@@ -48,82 +40,64 @@ export default function ScanCustomerCartPage() {
   }, [isScanning]);
 
   const onScanSuccess = async (decodedText) => {
-    if (!isScanning) return; // Mencegah scan berulang setelah berhasil
-    setIsScanning(false); // Matikan status scanning
-
-    const customerId = decodedText;
+    if (!isScanning) return;
+    setIsScanning(false);
+    const transactionId = decodedText;
 
     Swal.fire({
       title: "QR Terdeteksi!",
-      text: "Mengambil data keranjang pelanggan...",
+      text: "Memvalidasi transaksi...",
       allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
+      didOpen: () => Swal.showLoading(),
     });
 
     try {
-      const cartCollectionRef = collection(
-        db,
-        "users",
-        customerId,
-        "customerCart"
-      );
-      const cartSnapshot = await getDocs(cartCollectionRef);
+      const transRef = doc(db, "pendingTransactions", transactionId);
+      const transSnap = await getDoc(transRef);
 
-      if (cartSnapshot.empty) {
-        throw new Error("Pelanggan tidak memiliki item di keranjang.");
+      if (!transSnap.exists()) {
+        throw new Error("Transaksi tidak ditemukan atau sudah diproses.");
       }
 
-      clearCart();
-      const batch = writeBatch(db);
+      const transactionData = transSnap.data();
 
-      cartSnapshot.forEach((doc) => {
-        const item = doc.data();
-        addToCart({ ...item, id: doc.id });
-        // Tambahkan operasi delete ke batch
-        batch.delete(doc.ref);
-      });
+      if (transactionData.merchantId !== userProfile?.merchantId) {
+        throw new Error("Transaksi ini bukan untuk toko Anda!");
+      }
 
-      // Hapus semua item keranjang pelanggan dalam satu operasi
-      await batch.commit();
+      replaceCart(transactionData.items);
+      setScannedCustomerId(transactionData.customerId);
+      setScannedTransactionId(transactionId);
 
       Swal.close();
       router.push("/cashier/checkout");
     } catch (err) {
-      console.error("Gagal mengambil keranjang pelanggan:", err);
-      setError(err.message);
+      console.error("Gagal memproses QR:", err);
       Swal.fire({
         icon: "error",
         title: "Gagal",
-        text:
-          err.message || "Tidak dapat mengambil data keranjang dari pelanggan.",
+        text: err.message,
       });
+      setTimeout(() => setIsScanning(true), 2000);
     }
   };
 
-  const onScanError = () => {
-    // Fungsi ini bisa dikosongkan untuk mengabaikan error minor dari scanner
-  };
+  const onScanError = () => {};
 
   const handleStartScan = () => {
-    setError(""); // Hapus error sebelumnya
+    setError("");
     setIsScanning(true);
   };
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen h-auto bg-gray-100 flex flex-col justify-center items-center p-4">
+      <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center p-4">
         <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg text-center">
-          <h1 className="text-2xl font-bold mb-4">
-            Pindai QR Code Keranjang Pelanggan
-          </h1>
-
+          <h1 className="text-2xl font-bold mb-4">Pindai QR Code Transaksi</h1>
           {!isScanning ? (
             <>
               <p className="text-gray-600 mb-6">
-                Tekan tombol di bawah untuk memulai kamera dan memindai QR code
-                dari aplikasi pelanggan.
+                Tekan tombol di bawah untuk memulai kamera.
               </p>
               <button
                 onClick={handleStartScan}
@@ -146,7 +120,6 @@ export default function ScanCustomerCartPage() {
               </button>
             </>
           )}
-
           {error && <p className="mt-4 text-red-600 font-medium">{error}</p>}
         </div>
       </div>

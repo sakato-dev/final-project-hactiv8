@@ -22,7 +22,6 @@ export default function CustomerHome() {
   const [memberships, setMemberships] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // State untuk paginasi kartu
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
@@ -41,7 +40,6 @@ export default function CustomerHome() {
     );
     const unsubMemberships = onSnapshot(membershipsQuery, async (snapshot) => {
       const memberListPromises = snapshot.docs.map(async (docSnapshot) => {
-        // Mengganti nama variabel `doc` menjadi `docSnapshot`
         const membershipData = docSnapshot.data();
         const merchantRef = doc(db, "merchants", membershipData.merchantId);
         const merchantSnap = await getDoc(merchantRef);
@@ -77,7 +75,6 @@ export default function CustomerHome() {
     };
   }, [userProfile]);
 
-  // Logika untuk gestur geser (swipe)
   const onTouchStart = (e) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
@@ -130,7 +127,9 @@ export default function CustomerHome() {
         </div>
       </div>
 
-      <CustomerTabs />
+      <div className="w-full">
+        <CustomerTabs />
+      </div>
 
       <div className="px-4">
         {memberships.length > 0 ? (

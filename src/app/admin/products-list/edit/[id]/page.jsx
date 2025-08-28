@@ -5,6 +5,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useAuth } from "@/contexts/auth-context";
+import Swal from "sweetalert2";
 
 export default function Page() {
   const [loading, setLoading] = useState(false);
@@ -62,7 +63,7 @@ export default function Page() {
         ...product,
         price: Number(product.price),
       });
-      alert("Produk berhasil diperbarui!");
+      Swal.fire("Produk berhasil diperbarui!");
       router.push("/admin/products-list");
     } catch (error) {
       console.error("Error updating product: ", error);

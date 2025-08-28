@@ -13,7 +13,7 @@ const featuresData = [
       "Class aptent taciti sociosqu ad litora.",
     ],
     buttonText: "Get Started Now",
-    imageUrl: "/creditcard.png", // Ganti dengan URL gambar Anda
+    imageUrl: "/feature2.png", // Ganti dengan URL gambar Anda
     imageSide: "left",
   },
   {
@@ -27,7 +27,7 @@ const featuresData = [
       "Ac aliquet odio mattis.",
     ],
     buttonText: null, // Tidak ada tombol di bagian kedua
-    imageUrl: "/creditcard.png", // Ganti dengan URL gambar Anda
+    imageUrl: "/feature1.png", // Ganti dengan URL gambar Anda
     imageSide: "right",
   },
 ];

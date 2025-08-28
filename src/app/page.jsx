@@ -9,6 +9,8 @@ import CardDesign from "@/components/landing-page/cardDesign";
 import Offers from "@/components/landing-page/offers";
 import Faq from "@/components/landing-page/faq";
 import Features from "@/components/landing-page/features";
+import Promotions from "@/components/landing-page/promotion";
+import Footer from "@/components/landing-page/footer";
 
 export default function Home() {
   return (
@@ -23,6 +25,8 @@ export default function Home() {
         <Testimonials />
         <Faq />
         <Features />
+        <Promotions />
+        <Footer />
       </div>
 
       {/* Nanti kita bisa tambahkan komponen FAQ dan Footer di sini */}

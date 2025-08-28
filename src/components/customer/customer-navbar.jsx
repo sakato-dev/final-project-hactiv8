@@ -12,6 +12,7 @@ export default function CustomerNavbar() {
     { href: "/customer", icon: FaHome, label: "Home" },
     { href: "/customer/shop", icon: FaStore, label: "Shop" },
     { href: "/customer/cart", icon: FaShoppingCart, label: "Cart" },
+    { href: "/customer/orders", icon: FaQrcode, label: "Orders" },
   ];
 
   return (

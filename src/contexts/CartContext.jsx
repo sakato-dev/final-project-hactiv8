@@ -1,20 +1,19 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 import Swal from "sweetalert2";
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
+  const [scannedCustomerId, setScannedCustomerId] = useState(null);
 
   const isDifferentMerchant = (merchantId) => {
     return cartItems.length > 0 && cartItems[0].merchantId !== merchantId;
   };
 
   const addToCart = (product, merchantId) => {
-    // Jika merchantId tidak disediakan, coba ambil dari product (kasus saat scan QR)
     const finalMerchantId = merchantId || product.merchantId;
-
     if (isDifferentMerchant(finalMerchantId)) {
       Swal.fire({
         title: "Toko Berbeda",
@@ -33,7 +32,6 @@ export function CartProvider({ children }) {
       });
       return;
     }
-
     setCartItems((prev) => {
       const existingItem = prev.find((item) => item.id === product.id);
       if (existingItem) {
@@ -51,7 +49,11 @@ export function CartProvider({ children }) {
     });
   };
 
-  // ... sisa fungsi (updateQuantity, dll) tidak berubah ...
+  // --- FUNGSI BARU UNTUK MENGGANTI ISI KERANJANG ---
+  const replaceCart = (newItems) => {
+    setCartItems(newItems);
+  };
+
   const updateQuantity = (id, type) => {
     setCartItems((prev) =>
       prev.map((item) =>
@@ -78,6 +80,7 @@ export function CartProvider({ children }) {
 
   const clearCart = () => {
     setCartItems([]);
+    setScannedCustomerId(null);
   };
 
   return (
@@ -85,10 +88,13 @@ export function CartProvider({ children }) {
       value={{
         cartItems,
         addToCart,
+        replaceCart, // <-- Ekspor fungsi baru
         updateQuantity,
         removeFromCart,
         cartCount,
         clearCart,
+        scannedCustomerId,
+        setScannedCustomerId,
       }}
     >
       {children}

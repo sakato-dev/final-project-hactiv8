@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
+// Impor yang benar dan lengkap
 import {
   collection,
   query,
@@ -130,7 +131,9 @@ export default function CustomerHome() {
         </div>
       </div>
 
-      <CustomerTabs />
+      <div className="w-full">
+        <CustomerTabs />
+      </div>
 
       <div className="px-4">
         {memberships.length > 0 ? (

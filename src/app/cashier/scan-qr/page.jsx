@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import ProtectedRoute from "@/components/protected-route";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, deleteDoc } from "firebase/firestore"; // <-- Import getDoc & deleteDoc
+import { doc, getDoc, deleteDoc } from "firebase/firestore";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/auth-context";
 import { Html5QrcodeScanner } from "html5-qrcode";
@@ -10,7 +10,8 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 export default function ScanCustomerCartPage() {
-  const { clearCart, addToCart } = useCart();
+  // --- PERBAIKAN: Gunakan replaceCart bukan addToCart ---
+  const { replaceCart, setScannedCustomerId } = useCart();
   const { userProfile } = useAuth();
   const router = useRouter();
   const [error, setError] = useState("");
@@ -18,7 +19,6 @@ export default function ScanCustomerCartPage() {
   const scannerRef = useRef(null);
 
   useEffect(() => {
-    // ... useEffect untuk scanner tidak berubah ...
     if (isScanning) {
       scannerRef.current = new Html5QrcodeScanner(
         "qr-reader",
@@ -52,7 +52,6 @@ export default function ScanCustomerCartPage() {
     });
 
     try {
-      // 1. Ambil data dari pendingTransactions
       const transRef = doc(db, "pendingTransactions", transactionId);
       const transSnap = await getDoc(transRef);
 
@@ -62,18 +61,16 @@ export default function ScanCustomerCartPage() {
 
       const transactionData = transSnap.data();
 
-      // 2. Validasi Toko
       if (transactionData.merchantId !== userProfile?.merchantId) {
         throw new Error("Transaksi ini bukan untuk toko Anda!");
       }
 
-      // 3. Jika valid, isi keranjang dan hapus data pending
-      clearCart();
-      transactionData.items.forEach((item) => {
-        addToCart(item);
-      });
+      // --- PERBAIKAN: Ganti seluruh isi keranjang dengan data dari transaksi ---
+      replaceCart(transactionData.items);
 
-      await deleteDoc(transRef); // Hapus setelah berhasil diambil
+      setScannedCustomerId(transactionData.customerId);
+
+      // await deleteDoc(transRef);
 
       Swal.close();
       router.push("/cashier/checkout");
@@ -84,7 +81,6 @@ export default function ScanCustomerCartPage() {
         title: "Gagal",
         text: err.message,
       });
-      // Beri jeda sebelum user bisa scan lagi
       setTimeout(() => setIsScanning(true), 2000);
     }
   };
@@ -99,7 +95,6 @@ export default function ScanCustomerCartPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center p-4">
-        {/* ... sisa JSX tidak berubah ... */}
         <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg text-center">
           <h1 className="text-2xl font-bold mb-4">
             Pindai QR Code Keranjang Pelanggan

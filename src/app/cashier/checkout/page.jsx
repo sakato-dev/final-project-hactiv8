@@ -24,10 +24,10 @@ const TAX_RATE = 0.11; // PPN 11%
 
 export default function CheckoutPage() {
   const { userProfile } = useAuth();
-  const { cartItems, clearCart } = useCart();
+  const { cartItems, clearCart, scannedCustomerId } = useCart();
   const router = useRouter();
 
-  const [customerId, setCustomerId] = useState("");
+  const [customerId, setCustomerId] = useState(scannedCustomerId || "");
   const [pointsAwarded, setPointsAwarded] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");

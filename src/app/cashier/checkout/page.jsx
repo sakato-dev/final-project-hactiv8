@@ -205,40 +205,79 @@ export default function CheckoutPage() {
         {/* Baris Pertama: Receipt & Payment */}
         <div className="w-full flex flex-col lg:flex-row gap-2">
           {/* Receipt */}
-          <div className="w-full lg:w-3/7 bg-gray-50 p-6 rounded-lg shadow">
-            <h2 className="text-xl font-bold mb-4">Ringkasan Pesanan</h2>
-            <div className="space-y-2 flex-grow">
+          <div className="w-full lg:w-3/7 bg-white p-6 rounded-lg shadow">
+            {/* Header */}
+            <h2 className="text-2xl font-bold text-center mb-6">Your Order</h2>
+
+            {/* Divider */}
+            <div className="border-t border-gray-300 mb-4"></div>
+
+            {/* Date & Receipt ID */}
+            <div className="space-y-2 mb-6">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Date</span>
+                <span className="text-black">
+                  {new Date().toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Receipt ID</span>
+                <span className="text-black">
+                  #{Math.floor(Math.random() * 1000000)}
+                </span>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-gray-300 mb-4"></div>
+
+            {/* Items */}
+            <div className="space-y-2 mb-6">
               {cartItems.map((item) => (
                 <div key={item.id} className="flex justify-between text-sm">
-                  <span>
+                  <span className="text-gray-600">
                     {item.name} x{item.quantity}
                   </span>
-                  <span className="font-medium">
+                  <span className="text-black">
                     {formatRupiah(item.price * item.quantity)}
                   </span>
                 </div>
               ))}
-            </div>
-            <div className="border-t pt-4 mt-4 space-y-2">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>{formatRupiah(subTotal)}</span>
+              <div className="flex justify-between text-sm mt-2">
+                <span className="text-gray-500">Subtotal</span>
+                <span className="text-black">{formatRupiah(subTotal)}</span>
               </div>
-              {/* mau didelete atau enggak */}
-              <div className="flex justify-between">
-                <span>Pajak (11%)</span>
-                <span>{formatRupiah(tax)}</span>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Tax (11%)</span>
+                <span className="text-black">{formatRupiah(tax)}</span>
               </div>
-              <div className="flex justify-between text-lg font-bold">
+              <div className="flex justify-between text-lg font-bold border-t border-gray-300 pt-2">
                 <span>Total</span>
                 <span>{formatRupiah(totalOrder)}</span>
               </div>
-              {isPaid && (
-                <p className="text-center text-md mt-4 ">
-                  Thank you for your purchase!
-                </p>
-              )}
             </div>
+
+            {/* Divider */}
+            <div className="border-t border-gray-300 mb-4"></div>
+
+            {/* Payment Info */}
+            <div className="space-y-2 mb-6">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Payment Method</span>
+                <span className="text-black">Cash</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Delivery</span>
+                <span className="text-black">Instant</span>
+              </div>
+            </div>
+
+            {/* Thank You */}
+            {isPaid && (
+              <p className="text-center text-lg font-medium mt-6">
+                Thank you for your purchase!
+              </p>
+            )}
           </div>
 
           {/* Payment */}
@@ -274,7 +313,7 @@ export default function CheckoutPage() {
                     <button
                       key={amt}
                       onClick={() => handleQuickCash(amt)}
-                      className="w-full h-17 bg-orange-100 rounded-lg flex items-center justify-center 
+                      className="w-full h-15 bg-orange-100 rounded-lg flex items-center justify-center 
                    text-lg font-semibold text-orange-700"
                     >
                       + Rp {amt.toLocaleString()}
@@ -283,12 +322,12 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* Numpad (3 kolom × 4 baris, full height) */}
-                <div className="flex-[2] grid grid-cols-3 gap-2 ">
+                <div className="flex-[2] grid grid-cols-3 gap-1 ">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, ".", 0, "DELETE"].map((n) => (
                     <button
                       key={n}
                       onClick={() => handleNumpadClick(n.toString())}
-                      className={`w-full h-24 rounded-lg flex items-center justify-center text-2xl border border-orange-200 font-bold
+                      className={`w-full h-22 rounded-lg flex items-center justify-center text-2xl border border-orange-200 font-bold
           ${
             n === "DELETE"
               ? "bg-rose-500 text-white"

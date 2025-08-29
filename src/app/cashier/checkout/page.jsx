@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import ProtectedRoute from "@/components/protected-route";
 import { auth, db } from "@/lib/firebase";
 import {
@@ -39,6 +39,7 @@ export default function CheckoutPage() {
   // --- Payment State ---
   const [customerPay, setCustomerPay] = useState("");
   const [isPaid, setIsPaid] = useState(false);
+  const [inputSource, setInputSource] = useState("numpad");
 
   const scannerRef = useRef(null);
 
@@ -52,25 +53,39 @@ export default function CheckoutPage() {
 
   // --- Quick Cash & Numpad Functions ---
   const handleQuickCash = (amt) => {
-    setCustomerPay((prev) => String(Number(prev || 0) + amt));
+    setCustomerPay(String(amt));
+    setInputSource("quick");
   };
 
-  const handleNumpadClick = (n) => {
-    if (n === "DELETE") {
-      setCustomerPay((prev) => prev.slice(0, -1));
-    } else {
-      setCustomerPay((prev) => prev + n);
-    }
+  // --- FUNGSI BARU UNTUK UANG PAS ---
+  const handleExactMoney = () => {
+    setCustomerPay(String(totalOrder));
+    setInputSource("quick");
   };
 
-  const handleConfirmPayment = () => {
+  const handleNumpadClick = useCallback(
+    (n) => {
+      if (n === "DELETE") {
+        setCustomerPay((prev) => prev.slice(0, -1));
+      } else {
+        setCustomerPay((prevPay) => {
+          const newPay = inputSource === "quick" ? n : prevPay + n;
+          return newPay;
+        });
+      }
+      setInputSource("numpad");
+    },
+    [inputSource]
+  );
+
+  const handleConfirmPayment = useCallback(() => {
     if (Number(customerPay) >= totalOrder) {
       setIsPaid(true);
       Swal.fire("Pembayaran Berhasil", "Transaksi dapat disimpan", "success");
     } else {
       Swal.fire("Gagal", "Nominal pembayaran kurang", "error");
     }
-  };
+  }, [customerPay, totalOrder]);
 
   // --- Firestore Hooks ---
   useEffect(() => {
@@ -84,6 +99,29 @@ export default function CheckoutPage() {
       return () => unsubscribe();
     }
   }, [userProfile]);
+
+  // --- KEYBOARD EVENT LISTENER ---
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      const key = event.key;
+      if (!isNaN(key) || key === ".") {
+        handleNumpadClick(key);
+      }
+      if (key === "Backspace") {
+        handleNumpadClick("DELETE");
+      }
+      if (key === "Enter") {
+        event.preventDefault();
+        if (!isPaid) {
+          handleConfirmPayment();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isPaid, handleNumpadClick, handleConfirmPayment]);
 
   useEffect(() => {
     if (merchant?.promotionSettings?.type === "point") {
@@ -102,7 +140,6 @@ export default function CheckoutPage() {
         { fps: 5, qrbox: { width: 250, height: 250 } },
         false
       );
-
       const onScanSuccess = (decodedText) => {
         setCustomerId(decodedText);
         setIsScanning(false);
@@ -206,18 +243,17 @@ export default function CheckoutPage() {
         <div className="w-full flex flex-col lg:flex-row gap-2">
           {/* Receipt */}
           <div className="w-full lg:w-3/7 bg-white p-6 rounded-lg shadow">
-            {/* Header */}
             <h2 className="text-2xl font-bold text-center mb-6">Your Order</h2>
-
-            {/* Divider */}
+            {/* ... rest of the receipt JSX ... */}
             <div className="border-t border-gray-300 mb-4"></div>
-
-            {/* Date & Receipt ID */}
             <div className="space-y-2 mb-6">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Date</span>
                 <span className="text-black">
-                  {new Date().toLocaleString()}
+                  {new Date().toLocaleString("id-ID", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
@@ -227,11 +263,7 @@ export default function CheckoutPage() {
                 </span>
               </div>
             </div>
-
-            {/* Divider */}
             <div className="border-t border-gray-300 mb-4"></div>
-
-            {/* Items */}
             <div className="space-y-2 mb-6">
               {cartItems.map((item) => (
                 <div key={item.id} className="flex justify-between text-sm">
@@ -256,23 +288,13 @@ export default function CheckoutPage() {
                 <span>{formatRupiah(totalOrder)}</span>
               </div>
             </div>
-
-            {/* Divider */}
             <div className="border-t border-gray-300 mb-4"></div>
-
-            {/* Payment Info */}
             <div className="space-y-2 mb-6">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Payment Method</span>
                 <span className="text-black">Cash</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Delivery</span>
-                <span className="text-black">Instant</span>
-              </div>
             </div>
-
-            {/* Thank You */}
             {isPaid && (
               <p className="text-center text-lg font-medium mt-6">
                 Thank you for your purchase!
@@ -295,7 +317,7 @@ export default function CheckoutPage() {
                 <div className="flex justify-between">
                   <span className="font-medium">Customer Pay:</span>
                   <span className="font-semibold">
-                    Rp {Number(customerPay) || 0}
+                    Rp {(Number(customerPay) || 0).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -306,33 +328,53 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <div className="w-full  flex gap-2 bg-gray-50">
-                {/* Quick Cash (2 kolom × 3 baris, full height) */}
+              <div className="w-full flex gap-2 bg-gray-50 p-2 rounded-lg">
+                {/* Quick Cash */}
                 <div className="flex-1 grid grid-cols-1 gap-1 content-start">
-                  {[2000, 5000, 10000, 20000, 50000, 100000].map((amt) => (
+                  {/* --- TOMBOL UANG PAS BARU --- */}
+                  <button
+                    onClick={handleExactMoney}
+                    className="w-full h-18 rounded-lg flex items-center justify-center text-2xl border border-orange-200 font-semibold bg-yellow-100"
+                  >
+                    Uang Pas
+                  </button>
+
+                  {[5000, 10000, 50000, 100000].map((amt) => (
                     <button
                       key={amt}
                       onClick={() => handleQuickCash(amt)}
-                      className="w-full h-15 bg-orange-100 rounded-lg flex items-center justify-center 
-                   text-lg font-semibold text-orange-700"
+                      className="w-full h-18 rounded-lg flex items-center justify-center text-2xl border border-orange-200 font-bold"
                     >
-                      + Rp {amt.toLocaleString()}
+                      Rp {amt.toLocaleString()}
                     </button>
                   ))}
                 </div>
 
-                {/* Numpad (3 kolom × 4 baris, full height) */}
+                {/* Numpad */}
                 <div className="flex-[2] grid grid-cols-3 gap-1 ">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, ".", 0, "DELETE"].map((n) => (
+                  {[
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7",
+                    "8",
+                    "9",
+                    "000",
+                    "0",
+                    "DELETE",
+                  ].map((n) => (
                     <button
                       key={n}
-                      onClick={() => handleNumpadClick(n.toString())}
+                      onClick={() => handleNumpadClick(n)}
                       className={`w-full h-22 rounded-lg flex items-center justify-center text-2xl border border-orange-200 font-bold
-          ${
-            n === "DELETE"
-              ? "bg-rose-500 text-white"
-              : "bg-neutral-100 text-gray-800"
-          }`}
+                      ${
+                        n === "DELETE"
+                          ? "bg-rose-500 text-white"
+                          : "bg-neutral-100 text-gray-800"
+                      }`}
                     >
                       {n}
                     </button>
@@ -358,6 +400,7 @@ export default function CheckoutPage() {
 
         {/* Baris Kedua: Form Transaksi + Scan */}
         <div className="w-full bg-white p-6 rounded-lg shadow">
+          {/* ... sisa komponen form ... */}
           <h1 className="text-2xl font-bold text-gray-800 mb-6">
             Proses Transaksi
           </h1>
@@ -416,7 +459,7 @@ export default function CheckoutPage() {
 
             <button
               type="submit"
-              disabled={isLoading || cartItems.length === 0}
+              disabled={isLoading || cartItems.length === 0 || !isPaid}
               className="w-full py-3 px-4 border rounded-xl text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400"
             >
               {isLoading ? "Memproses..." : "Simpan Transaksi"}

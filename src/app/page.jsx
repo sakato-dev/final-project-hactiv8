@@ -36,7 +36,10 @@ export default function Home() {
         <section id="faq">
           <Faq />
         </section>
-        <Features />
+        <section id="features">
+          <Features />
+        </section>
+
         <Promotions />
         <Footer />
       </div>

@@ -38,7 +38,7 @@ export default function Partners() {
             logos={imageLogos}
             speed={120}
             direction="left"
-            logoHeight={80}
+            logoHeight={120}
             gap={40}
             pauseOnHover
             scaleOnHover

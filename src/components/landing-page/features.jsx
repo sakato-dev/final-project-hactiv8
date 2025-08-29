@@ -13,7 +13,7 @@ const featuresData = [
       "Class aptent taciti sociosqu ad litora.",
     ],
     buttonText: "Get Started Now",
-    imageUrl: "/feature2.png", // Ganti dengan URL gambar Anda
+    imageUrl: "/feature2.png",
     imageSide: "left",
   },
   {
@@ -26,8 +26,8 @@ const featuresData = [
       "Morem ipsum dolor sit amet.",
       "Ac aliquet odio mattis.",
     ],
-    buttonText: null, // Tidak ada tombol di bagian kedua
-    imageUrl: "/feature1.png", // Ganti dengan URL gambar Anda
+    buttonText: null,
+    imageUrl: "/mobileapps.png",
     imageSide: "right",
   },
 ];
@@ -40,9 +40,10 @@ export default function Features() {
           <div
             className={`grid grid-cols-1 items-center gap-x-16 gap-y-16 lg:grid-cols-2`}
           >
-            {/* Kolom Gambar */}
+            {/* Kolom Gambar (Dengan Perbaikan) */}
             <div
-              className={`relative h-[550px] ${
+              className={`relative h-[550px] rounded-3xl overflow-hidden ${
+                // <-- Tambahkan rounded-3xl & overflow-hidden di sini
                 feature.imageSide === "right" ? "lg:order-last" : ""
               }`}
             >
@@ -50,8 +51,7 @@ export default function Features() {
                 src={feature.imageUrl}
                 alt={feature.title}
                 layout="fill"
-                objectFit="contain"
-                className="rounded-2xl"
+                objectFit="contain" // <-- Ganti menjadi "cover"
               />
             </div>
 

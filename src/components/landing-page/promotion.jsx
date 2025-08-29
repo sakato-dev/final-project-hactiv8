@@ -4,24 +4,24 @@ import Image from "next/image";
 const promotions = [
   {
     brand: "Starbucks",
-    tagline1: "It's not just Coffee",
-    tagline2: "It's Starbucks",
+    tagline1: "Discount Voucher",
+    tagline2: "20%",
     logoUrl: "/sbuxlogo.png", // Ganti dengan URL logo
     productImageUrl: "/sbuxproduct.jpg", // Ganti dengan URL gambar produk
     backgroundClass: "from-green-900 to-gray-800", // Gradasi untuk Starbucks
   },
   {
     brand: "Kopi Kenangan",
-    tagline1: "Kenangan di Setiap",
-    tagline2: "Tetesnya",
+    tagline1: "Free Product",
+    tagline2: "Iced Oat Latte",
     logoUrl: "/kopikenanganlogo.png",
     productImageUrl: "/kopkenproduct.jpg",
     backgroundClass: "from-yellow-900 to-red-900", // Gradasi untuk Kopi Kenangan
   },
   {
     brand: "McDonald's",
-    tagline1: "I'm Lovin' It",
-    tagline2: "",
+    tagline1: "Discount Voucher",
+    tagline2: "15%",
     logoUrl: "/mcdlogo.png",
     productImageUrl: "/mcdproduct.png",
     backgroundClass: "from-red-700 to-yellow-500", // Gradasi untuk McDonald's
@@ -70,7 +70,7 @@ export default function Promotions() {
                 alt={`${promo.brand} product`}
                 width={120}
                 height={200}
-                className="absolute z-20 -bottom-4 right-4 transform rotate-12"
+                className="absolute z-10 top-4 right-4 transform rotate-12"
               />
             </div>
           ))}

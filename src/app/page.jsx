@@ -5,25 +5,37 @@ import Partners from "@/components/landing-page/partners";
 import Stats from "@/components/landing-page/stats";
 
 import Testimonials from "@/components/landing-page/testimonials";
-import CardDesign from "@/components/landing-page/cardDesign";
+import myPoints from "@/components/landing-page/myPoints";
 import Offers from "@/components/landing-page/offers";
 import Faq from "@/components/landing-page/faq";
 import Features from "@/components/landing-page/features";
 import Promotions from "@/components/landing-page/promotion";
 import Footer from "@/components/landing-page/footer";
+import MyPoints from "@/components/landing-page/myPoints";
 
 export default function Home() {
   return (
     <main>
-      <div className="bg-[url('/bg-blue.png')]">
+      <div className="bg-cover bg-[url('/bg-blue.png')]">
         <Navbar />
-        <Hero />
+        <section id="hero">
+          <Hero />
+        </section>
+
         <Stats />
-        <Partners />
+        <section id="partners">
+          <Partners />
+        </section>
+
         <Offers />
-        <CardDesign />
+        <section id="mypoints">
+          <MyPoints />
+        </section>
+
         <Testimonials />
-        <Faq />
+        <section id="faq">
+          <Faq />
+        </section>
         <Features />
         <Promotions />
         <Footer />

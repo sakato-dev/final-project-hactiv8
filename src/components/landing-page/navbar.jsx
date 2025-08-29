@@ -1,9 +1,9 @@
-"use client"; // Diperlukan untuk menggunakan state (useState) di Next.js App Router
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { FaBars, FaTimes } from "react-icons/fa"; // Menggunakan ikon dari react-icons
+import { FaBars, FaTimes } from "react-icons/fa";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);

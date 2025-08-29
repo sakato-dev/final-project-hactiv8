@@ -133,7 +133,7 @@ export default function CashierHome() {
                 onClick={() => handleAddToCart(product)}
                 className="bg-orange-500 hover:bg-orange-600 text-white text-xs mt-3 py-2 rounded-lg w-full transition"
               >
-                Shop
+                Add
               </button>
             </div>
           ))}

@@ -267,35 +267,38 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap justify-between gap-2">
-                {[10000, 20000, 50000, 100000].map((amt) => (
-                  <button
-                    key={amt}
-                    type="button"
-                    onClick={() => handleQuickCash(amt)}
-                    className="px-6 py-3 bg-orange-100 text-orange-700 rounded-lg font-medium"
-                  >
-                    + Rp {amt.toLocaleString()}
-                  </button>
-                ))}
-              </div>
+              <div className="w-full  flex gap-2 bg-gray-50">
+                {/* Quick Cash (2 kolom × 3 baris, full height) */}
+                <div className="flex-1 grid grid-cols-1 gap-1 content-start">
+                  {[2000, 5000, 10000, 20000, 50000, 100000].map((amt) => (
+                    <button
+                      key={amt}
+                      onClick={() => handleQuickCash(amt)}
+                      className="w-full h-17 bg-orange-100 rounded-lg flex items-center justify-center 
+                   text-lg font-semibold text-orange-700"
+                    >
+                      + Rp {amt.toLocaleString()}
+                    </button>
+                  ))}
+                </div>
 
-              <div className="grid grid-cols-3 gap-1">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, ".", 0, "DELETE"].map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => handleNumpadClick(n.toString())}
-                    className={`flex items-center justify-center py-4 rounded-lg text-lg font-semibold 
-        ${
-          n === "DELETE"
-            ? "bg-rose-400 text-white"
-            : "bg-neutral-100 text-gray-800"
-        }`}
-                  >
-                    {n}
-                  </button>
-                ))}
+                {/* Numpad (3 kolom × 4 baris, full height) */}
+                <div className="flex-[2] grid grid-cols-3 gap-2 ">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, ".", 0, "DELETE"].map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => handleNumpadClick(n.toString())}
+                      className={`w-full h-24 rounded-lg flex items-center justify-center text-2xl border border-orange-200 font-bold
+          ${
+            n === "DELETE"
+              ? "bg-rose-500 text-white"
+              : "bg-neutral-100 text-gray-800"
+          }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="flex gap-4">
@@ -322,7 +325,7 @@ export default function CheckoutPage() {
 
           {isScanning && (
             <div className="w-full mb-6">
-              <div id="qr-reader" className="w-150 h-auto"></div>
+              <div id="qr-reader" className="w-full"></div>
               <button
                 onClick={() => setIsScanning(false)}
                 className="w-full mt-4 p-2 bg-red-500 text-white rounded-md hover:bg-red-600"

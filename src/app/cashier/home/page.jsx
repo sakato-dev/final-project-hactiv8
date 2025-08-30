@@ -33,14 +33,13 @@ export default function CashierHome() {
   const router = useRouter();
 
   useEffect(() => {
-    if (loading) return;
-    if (!userProfile || !userProfile.merchantId) {
+    if (!loading && userProfile && !userProfile.merchantId) {
       Swal.fire({
         title: "Toko belum dibuat",
         text: "Silakan buat toko terlebih dahulu.",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#f97316",
+        confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
         confirmButtonText: "Buat Toko",
       }).then((result) => {
@@ -85,9 +84,8 @@ export default function CashierHome() {
     }
   }, [userProfile, loading]);
 
-  // Filter & sorting produk
   const processedProducts = useMemo(() => {
-    let filtered = [...products]; // Selalu buat salinan
+    let filtered = [...products];
     if (selectedCategory !== "All") {
       filtered = filtered.filter((p) => p.category === selectedCategory);
     }
@@ -123,8 +121,7 @@ export default function CashierHome() {
   }
 
   return (
-    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
-      {/* Search + Filter - DIBUAT RESPONSIVE */}
+    <div className="sm:p-6 bg-gray-50 min-h-screen">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div className="relative w-full md:max-w-xs">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

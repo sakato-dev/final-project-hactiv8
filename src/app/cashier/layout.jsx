@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CartProvider, useCart } from "@/contexts/CartContext";
 import { auth } from "@/lib/firebase";
 import { useRouter, usePathname } from "next/navigation";
+import Swal from "sweetalert2";
 import {
   FaHome,
   FaShoppingCart,
@@ -59,8 +60,22 @@ function Navbar() {
   }, [dropdownRef]);
 
   const handleLogout = () => {
-    auth.signOut();
-    router.push("/auth/login");
+    Swal.fire({
+      title: "Yakin mau logout?",
+      text: "Kamu bisa login lagi kapan saja.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#f97316",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Ya, Logout",
+      cancelButtonText: "Batal",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        auth.signOut().then(() => {
+          router.push("/auth/login");
+        });
+      }
+    });
   };
 
   const navItems = [

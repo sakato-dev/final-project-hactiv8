@@ -2,6 +2,7 @@
 import Navbar from "@/components/admin/Navbar";
 import Sidebar from "@/components/admin/sidebar";
 import ProtectedRoute from "@/components/protected-route";
+import { Toaster } from "react-hot-toast";
 import { useState } from "react";
 
 export default function AdminLayout({ children }) {

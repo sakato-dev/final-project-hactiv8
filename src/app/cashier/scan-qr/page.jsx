@@ -91,7 +91,7 @@ export default function ScanCustomerCartPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center p-4">
+      <div className="h-screen bg-gray-100 flex flex-col justify-center items-center">
         <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg text-center">
           <h1 className="text-2xl font-bold mb-4">Pindai QR Code Transaksi</h1>
           {!isScanning ? (

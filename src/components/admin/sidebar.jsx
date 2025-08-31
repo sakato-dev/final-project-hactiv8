@@ -1,13 +1,15 @@
 "use client";
-
 import Link from "next/link";
 import React from "react";
+import { usePathname } from "next/navigation";
 import { BiMenu } from "react-icons/bi";
 import { BsCart, BsGear, BsMailbox } from "react-icons/bs";
 import { IoAdd } from "react-icons/io5";
 import { MdDashboard } from "react-icons/md";
 
 export default function Sidebar({ isSideBarOpen, onClick }) {
+  const pathname = usePathname();
+
   return (
     <aside
       className={`
@@ -34,7 +36,7 @@ export default function Sidebar({ isSideBarOpen, onClick }) {
           className={`flex items-center gap-4 w-full p-3 rounded-lg
                   transition-colors duration-200
                   ${
-                    location.pathname === "/admin"
+                    pathname === "/admin"
                       ? "bg-blue-600 text-white shadow-lg"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
@@ -54,7 +56,7 @@ export default function Sidebar({ isSideBarOpen, onClick }) {
           className={`flex items-center gap-4 w-full p-3 rounded-lg
                   transition-colors duration-200
                   ${
-                    location.pathname === "/admin/staff"
+                    pathname === "/admin/staff"
                       ? "bg-blue-600 text-white shadow-lg"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
@@ -74,7 +76,7 @@ export default function Sidebar({ isSideBarOpen, onClick }) {
           className={`flex items-center gap-4 w-full p-3 rounded-lg
                   transition-colors duration-200
                   ${
-                    location.pathname === "/admin/products-list"
+                    pathname.startsWith("/admin/products-list")
                       ? "bg-blue-600 text-white shadow-lg"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
@@ -94,7 +96,7 @@ export default function Sidebar({ isSideBarOpen, onClick }) {
           className={`flex items-center gap-4 w-full p-3 rounded-lg
                   transition-colors duration-200
                   ${
-                    location.pathname === "/seller/message"
+                    pathname.startsWith("/cashier")
                       ? "bg-blue-600 text-white shadow-lg"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
@@ -114,7 +116,7 @@ export default function Sidebar({ isSideBarOpen, onClick }) {
           className={`flex items-center gap-4 w-full p-3 rounded-lg
                   transition-colors duration-200
                   ${
-                    location.pathname === "/admin/settings"
+                    pathname === "/admin/settings"
                       ? "bg-blue-600 text-white shadow-lg"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}

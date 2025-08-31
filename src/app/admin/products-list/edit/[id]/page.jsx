@@ -5,9 +5,9 @@ import { FaArrowLeft, FaCloudUploadAlt } from "react-icons/fa";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useAuth } from "@/contexts/auth-context";
-import Swal from "sweetalert2";
 import { FileUploaderRegular } from "@uploadcare/react-uploader";
 import "@uploadcare/react-uploader/core.css";
+import Swal from "sweetalert2";
 
 export default function Page() {
   const [loading, setLoading] = useState(false);
@@ -22,9 +22,10 @@ export default function Page() {
   const { id } = useParams();
   const { userProfile } = useAuth();
 
+  // Prefill data product
   useEffect(() => {
     const fetchProduct = async () => {
-      if (id && userProfile && userProfile.merchantId) {
+      if (id && userProfile?.merchantId) {
         const docRef = doc(
           db,
           "merchants",
@@ -36,12 +37,13 @@ export default function Page() {
         if (docSnap.exists()) {
           setProduct(docSnap.data());
         } else {
-          console.log("No such document!");
+          Swal.fire("Error", "Product not found", "error");
+          router.push("/admin/products-list");
         }
       }
     };
     fetchProduct();
-  }, [id, userProfile]);
+  }, [id, userProfile, router]);
 
   const handleChange = (e) => {
     setProduct({
@@ -52,126 +54,143 @@ export default function Page() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validation check
+    if (
+      !product.name.trim() ||
+      !product.category.trim() ||
+      !product.price ||
+      !product.description.trim() ||
+      !product.imgUrl.trim()
+    ) {
+      Swal.fire(
+        "Error",
+        "All fields must be filled in before saving.",
+        "error"
+      );
+      return;
+    }
+
     setLoading(true);
     try {
-      const docRef = doc(
-        db,
-        "merchants",
-        userProfile.merchantId,
-        "products",
-        id
-      );
-      await updateDoc(docRef, {
-        ...product,
-        price: Number(product.price),
-      });
-      Swal.fire("Produk berhasil diperbarui!");
-      router.push("/admin/products-list");
+      if (userProfile && userProfile.merchantId) {
+        const docRef = doc(
+          db,
+          "merchants",
+          userProfile.merchantId,
+          "products",
+          id
+        );
+        await updateDoc(docRef, {
+          ...product,
+          price: Number(product.price),
+        });
+        Swal.fire("Success", "Product successfully updated!", "success");
+        router.push("/admin/products-list");
+      } else {
+        throw new Error("Merchant ID not found.");
+      }
     } catch (error) {
       console.error("Error updating product: ", error);
-      alert("Gagal memperbarui produk.");
+      Swal.fire("Error", "Failed to update product.", "error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div>
-      <div className="max-w-3xl mx-auto p-6 bg-white dark:bg-gray-900 rounded-xl shadow space-y-6">
-        <div className="flex items-center gap-3">
-          <FaArrowLeft
-            onClick={() => router.back()}
-            className="cursor-pointer text-gray-800 dark:text-white"
-          />
-          <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">
-            Edit Product
-          </h1>
-        </div>
+    <div className="w-[1116px] mx-auto py-4">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-4">
+        <FaArrowLeft
+          onClick={() => router.back()}
+          className="cursor-pointer text-gray-800 dark:text-white"
+        />
+        <h1 className="text-2xl font-bold text-teal-950">Edit Product</h1>
+      </div>
 
-        <form className="space-y-4 text-black" onSubmit={handleSubmit}>
-          {/* Nama Produk */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Nama Produk
+      {/* Layout 2 columns */}
+      <form onSubmit={handleSubmit} className="inline-flex gap-4 w-full">
+        {/* Left: Basic Details */}
+        <div className="w-[611px] bg-white rounded-lg shadow p-6 flex flex-col gap-5">
+          <h2 className="text-xl font-bold text-zinc-800">Product Details</h2>
+
+          {/* Product Name */}
+          <div className="flex flex-col gap-2">
+            <label className="text-base font-bold text-teal-950">
+              Product Name
             </label>
             <input
               type="text"
-              placeholder="Contoh: Headphone Wireless"
-              className="mt-1 w-full px-4 py-2 border rounded-md text-sm dark:bg-gray-800 dark:text-white dark:border-gray-700"
               name="name"
+              placeholder="e.g. Wireless Headphone"
               value={product.name}
               onChange={handleChange}
+              className="h-12 px-3 py-2 bg-neutral-50 rounded-lg border border-gray-200"
             />
           </div>
 
-          {/* Deskripsi */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Deskripsi
+          {/* Description */}
+          <div className="flex flex-col gap-2">
+            <label className="text-base font-bold text-teal-950">
+              Product Description
             </label>
             <textarea
               rows={4}
-              placeholder="Deskripsi produk..."
-              className="mt-1 w-full px-4 py-2 border rounded-md text-sm dark:bg-gray-800 dark:text-white dark:border-gray-700"
+              name="description"
+              placeholder="Product description..."
               value={product.description}
               onChange={handleChange}
-              name="description"
+              className="p-3 bg-neutral-50 rounded-lg border border-gray-200"
             />
           </div>
 
-          {/* Kategori */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Kategori
+          {/* Price */}
+          <div className="flex flex-col gap-2">
+            <label className="text-base font-bold text-teal-950">
+              Product Price
             </label>
             <input
-              type="text"
-              placeholder="Contoh: Elektronik"
-              className="mt-1 w-full px-4 py-2 border rounded-md text-sm dark:bg-gray-800 dark:text-white dark:border-gray-700"
-              name="category"
-              value={product.category}
+              type="number"
+              name="price"
+              placeholder="e.g. 150000"
+              value={product.price}
               onChange={handleChange}
+              className="h-12 px-3 py-2 bg-neutral-50 rounded-lg border border-gray-200"
             />
           </div>
 
-          {/* Harga */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Harga (Rp)
-              </label>
-              <input
-                type="number"
-                className="mt-1 w-full px-4 py-2 border rounded-md text-sm dark:bg-gray-800 dark:text-white dark:border-gray-700"
-                placeholder="contoh: 150000"
-                value={product.price}
-                onChange={handleChange}
-                name="price"
-              />
-            </div>
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-6">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 rounded-lg bg-orange-500 text-white font-bold hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Saving..." : "Save"}
+            </button>
           </div>
+        </div>
 
-          {/* Upload Gambar / Input URL */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Gambar Produk
+        {/* Right: Upload Image & Category */}
+        <div className="w-[485px] bg-white rounded-lg shadow p-6 flex flex-col gap-5">
+          <h2 className="text-xl font-bold text-zinc-800">
+            Upload Product Image
+          </h2>
+
+          {/* Upload / Preview */}
+          <div className="flex flex-col gap-2">
+            <label className="text-base font-bold text-teal-950">
+              Product Image
             </label>
-            <p className="text-xs text-gray-500 mb-2">
-              Masukkan URL manual atau upload file. Upload otomatis mengisi URL.
-            </p>
-
-            {/* Input URL Manual */}
-            <input
-              type="text"
-              placeholder="https://example.com/image.jpg"
-              className="w-full px-4 py-2 mb-3 border rounded-md text-sm dark:bg-gray-800 dark:text-white dark:border-gray-700"
-              name="imgUrl"
-              value={product.imgUrl}
-              onChange={handleChange}
-            />
-
-            {/* File Uploader */}
-            <div className="flex-1 h-52 bg-neutral-50 rounded-lg border border-dashed border-gray-300 flex items-center justify-center relative cursor-pointer overflow-hidden">
+            <div className="h-64 flex items-center justify-center border border-gray-200 rounded-lg relative overflow-hidden">
               {product.imgUrl ? (
                 <img
                   src={product.imgUrl}
@@ -182,44 +201,48 @@ export default function Page() {
                 <div className="flex flex-col items-center gap-2 text-gray-400 text-sm italic">
                   <FaCloudUploadAlt size={32} />
                   Upload Image
+                  <p className="text-sm text-gray-400 mt-1">
+                    Choose a file or drag & drop it here (jpg, png, max 1MB)
+                  </p>
                 </div>
               )}
-
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 bg-black/5 transition">
+              <div className="absolute inset-0 opacity-0 hover:opacity-100 transition bg-black/5 flex items-center justify-center">
                 <FileUploaderRegular
                   pubkey="33563ee22dfa473493de"
-                  onFileUploadSuccess={(result) => {
-                    console.log("Upload success:", result);
-                    setProduct({ ...product, imgUrl: result.cdnUrl });
-                  }}
+                  onFileUploadSuccess={(res) =>
+                    setProduct({ ...product, imgUrl: res.cdnUrl })
+                  }
                 />
               </div>
             </div>
+
+            {/* Manual URL input */}
+            <input
+              type="text"
+              placeholder="https://example.com/image.jpg"
+              name="imgUrl"
+              value={product.imgUrl}
+              onChange={handleChange}
+              className="mt-3 px-3 py-2 border border-gray-200 rounded-lg"
+            />
           </div>
 
-          {/* Tombol Aksi */}
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              onClick={() => router.back()}
-              type="button"
-              className="px-4 py-2 rounded-md border text-sm dark:text-white dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded-md bg-indigo-600 text-white text-sm hover:bg-indigo-700"
-              disabled={loading}
-            >
-              {loading ? (
-                <span className="loading loading-spinner"></span>
-              ) : (
-                "Save"
-              )}
-            </button>
+          {/* Category */}
+          <div className="flex flex-col gap-2">
+            <label className="text-base font-bold text-teal-950">
+              Category
+            </label>
+            <input
+              type="text"
+              name="category"
+              placeholder="e.g. Electronics"
+              value={product.category}
+              onChange={handleChange}
+              className="h-12 px-3 py-2 bg-neutral-50 rounded-lg border border-gray-200"
+            />
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 }

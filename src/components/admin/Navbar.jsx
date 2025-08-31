@@ -7,7 +7,7 @@ import { MdMenu } from "react-icons/md";
 export default function Navbar({ handleToggleSidebar }) {
   const handleLogout = () => auth.signOut();
   return (
-    <nav className="flex justify-between px-6 bg-gray-100">
+    <nav className="flex justify-between px-6 bg-gray-100 text-gray-900">
       <div className="flex gap-4">
         <Image
           src={"/logoblack.png"}

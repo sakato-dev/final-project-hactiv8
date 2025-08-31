@@ -25,10 +25,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[url('/bg-image.png')]">
+    <div className="flex h-screen bg-[url('/bg-landingpage.png')]">
       {/* Sisi Kiri - Informasi Landing Page */}
       <div className="absolute top-10 left-20">
-        <Image src="/logo.png" width={100} height={100} alt="PointJuaro" />
+        <Image
+          src="/logo.png"
+          width={100}
+          height={100}
+          alt="PointJuaro"
+          className="w-40"
+        />
       </div>
       <div className="w-1/2 flex-col justify-center items-start p-20 relative hidden md:flex">
         <h1 className="text-5xl font-bold text-white mb-20">
@@ -40,7 +46,7 @@ export default function LoginPage() {
 
       {/* Sisi Kanan - Form Login */}
       <div className="w-full md:w-1/2 flex justify-center items-center">
-        <div className="bg-[url('/bg-image.png')] p-10 rounded-2xl shadow-lg w-full max-w-md relative">
+        <div className="bg-[url('/bg-blue.png')] p-10 rounded-2xl shadow-lg w-full max-w-md relative">
           <div className="text-center mb-8">
             <div className="inline-block mb-4">
               <Image
@@ -48,6 +54,7 @@ export default function LoginPage() {
                 width={100}
                 height={100}
                 alt="PointJuaro"
+                className="w-35"
               />
             </div>
           </div>

@@ -7,23 +7,28 @@ import { useRouter } from "next/navigation";
 import formatRupiah from "@/utils/FormatRupiah";
 import { useAuth } from "@/contexts/auth-context";
 import Swal from "sweetalert2";
+import { FiSearch, FiChevronDown, FiPlus } from "react-icons/fi";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
 export default function Page() {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+
   const router = useRouter();
   const { userProfile } = useAuth();
 
   useEffect(() => {
     if (!userProfile || !userProfile.merchantId) {
       Swal.fire({
-        title: "Toko belum dibuat",
-        text: "Silakan buat toko terlebih dahulu.",
+        title: "Store not created",
+        text: "Please create your store first.",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#3085d6",
+        confirmButtonColor: "#f97316",
         cancelButtonColor: "#d33",
-        confirmButtonText: "Buat Toko",
+        confirmButtonText: "Create Store",
       }).then((result) => {
         if (result.isConfirmed) {
           router.push("/admin");
@@ -61,13 +66,13 @@ export default function Page() {
 
   const handleDelete = async (id) => {
     Swal.fire({
-      title: "Apakah kamu yakin hapus produk ini?",
-      text: "Anda tidak dapat mengembalikan produk ini!",
+      title: "Are you sure you want to delete this product?",
+      text: "You won’t be able to recover this product!",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
+      confirmButtonColor: "#f97316",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Ya, hapus!",
+      confirmButtonText: "Yes, delete it!",
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
@@ -82,101 +87,153 @@ export default function Page() {
           setProducts((prevProducts) =>
             prevProducts.filter((product) => product.id !== id)
           );
-          Swal.fire("Deleted!", "Your product has been deleted.", "success");
+          Swal.fire("Deleted!", "Product has been deleted.", "success");
         } catch (error) {
           console.error("Error deleting product: ", error);
-          alert("Gagal menghapus produk.");
+          alert("Failed to delete product.");
         }
       }
     });
   };
 
+  // Filtered products
+  const filteredProducts = products.filter((item) => {
+    const matchesSearch = item.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      categoryFilter === "All" || item.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
+  // Get unique categories for filter dropdown
+  const categories = ["All", ...new Set(products.map((p) => p.category))];
+
   return (
-    <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
-        <Link
-          href="/admin/products-list/new"
-          className="p-2 bg-blue-500 text-white rounded-lg"
-        >
-          Add new product
-        </Link>
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+      <div className="bg-white p-6 rounded-xl shadow-sm">
+        {/* Title */}
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">Product List</h1>
+
+        {/* Search, Category, Add Product */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          {/* Left side: search & category */}
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            {/* Search */}
+            <div className="relative w-full sm:w-64">
+              <FiSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 w-full border rounded-lg focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+            {/* Category */}
+            <div>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500"
+              >
+                {categories.map((cat, i) => (
+                  <option key={i} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Right side: Add product */}
+          <Link
+            href="/admin/products-list/new"
+            className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-lg"
+          >
+            <FiPlus />
+            <span>Add new product</span>
+          </Link>
+        </div>
       </div>
-      <div className="overflow-x-auto mt-6 rounded-xl border border-black bg-white dark:bg-gray-800">
-        <table className="table-auto w-full text-left text-sm">
-          <thead className="bg-gray-100 dark:bg-gray-700 text-black dark:text-gray-300 uppercase">
+
+      {/* Table */}
+      <div className="mt-6 bg-white rounded-xl shadow-sm overflow-x-auto">
+        <table className="w-full text-md text-left text-gray-500">
+          <thead className="text-md text-gray-800 uppercase bg-gray-100">
             <tr>
-              <th className="px-3 py-2 sm:px-6 sm:py-3">No</th>
-              <th className="px-3 py-2 sm:px-6 sm:py-3">Image</th>
-              <th className="px-3 py-2 sm:px-6 sm:py-3">Name</th>
-              <th className="px-3 py-2 sm:px-6 sm:py-3 hidden sm:table-cell">
+              <th scope="col" className="px-6 py-3">
+                Product
+              </th>
+              <th scope="col" className="px-6 py-3">
                 Category
               </th>
-              <th className="px-3 py-2 sm:px-6 sm:py-3">Price</th>
-              <th className="px-3 py-2 sm:px-6 sm:py-3">Action</th>
+              <th scope="col" className="px-6 py-3">
+                Price
+              </th>
+              <th scope="col" className="px-6 py-3 text-center">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td
-                  colSpan="7"
-                  className="text-center py-4 text-gray-500 dark:text-gray-400"
-                >
-                  <div className="space-y-4">
-                    <div className="loading loading-spinner loading-xl text-primary mx-auto"></div>
-                    <p className="text-lg">Loading</p>
+                <td colSpan="4" className="text-center py-10">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="loading loading-spinner loading-lg text-orange-500"></div>
+                    <span>Loading products...</span>
                   </div>
                 </td>
               </tr>
-            ) : products.length === 0 ? (
+            ) : filteredProducts.length === 0 ? (
               <tr>
-                <td
-                  colSpan="7"
-                  className="text-center py-4 text-gray-500 dark:text-gray-400"
-                >
-                  Tidak ada produk ditemukan.
+                <td colSpan="4" className="text-center py-10 text-gray-500">
+                  No products found.
                 </td>
               </tr>
             ) : (
-              products.map((item, index) => (
-                <tr
-                  key={item.id}
-                  className="border-t hover:bg-gray-50 dark:hover:bg-gray-700 text-black dark:text-white"
-                >
-                  <td className="px-3 py-2 border-r sm:px-6 sm:py-3">
-                    {index + 1}
+              filteredProducts.map((item) => (
+                <tr key={item.id} className="bg-white border-b border-gray-200">
+                  <th
+                    scope="row"
+                    className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap"
+                  >
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={item.imgUrl}
+                        alt={item.name}
+                        className="w-25 h-25 object-cover rounded-md"
+                      />
+                      <div>
+                        <div className="font-bold capitalize">{item.name}</div>
+                        <div className="text-sm font-normal text-gray-500">
+                          {item.description}
+                        </div>
+                      </div>
+                    </div>
+                  </th>
+                  <td className="px-6 py-4 capitalize">{item.category}</td>
+                  <td className="px-6 py-4">
+                    {item.price ? formatRupiah(item.price) : "Rp 0"}
                   </td>
-                  <td className="px-3 py-2 border-r sm:px-6 sm:py-3">
-                    <img
-                      src={item.imgUrl}
-                      alt={item.name}
-                      className="w-16 h-16 object-cover rounded-md sm:w-24 sm:h-24"
-                    />
-                  </td>
-                  <td className="px-3 py-2 border-r capitalize sm:px-6 sm:py-3">
-                    {item.name}
-                  </td>
-                  <td className="px-3 py-2 border-r capitalize hidden sm:table-cell sm:px-6 sm:py-3">
-                    {item.category}
-                  </td>
-                  <td className="px-3 py-2 border-r sm:px-6 sm:py-3">
-                    {item.price ? formatRupiah(item.price) : "0"}
-                  </td>
-
-                  <td className="px-3 py-2 space-x-1 sm:px-6 sm:py-3 sm:space-x-2">
-                    <button
-                      onClick={() => handleEdit(item.id)}
-                      className="px-2 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-xs sm:text-sm"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="px-2 py-1 bg-rose-600 text-white rounded hover:bg-rose-700 text-xs sm:text-sm"
-                    >
-                      Delete
-                    </button>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-center gap-3">
+                      <button
+                        onClick={() => handleEdit(item.id)}
+                        className="text-indigo-600 hover:text-indigo-800"
+                        title="Edit"
+                      >
+                        <FaEdit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="text-rose-600 hover:text-rose-800"
+                        title="Delete"
+                      >
+                        <FaTrash size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

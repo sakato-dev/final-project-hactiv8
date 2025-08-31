@@ -1,10 +1,12 @@
 "use client";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaCloudUploadAlt } from "react-icons/fa";
 import { db } from "@/lib/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { useAuth } from "@/contexts/auth-context";
+import { FileUploaderRegular } from "@uploadcare/react-uploader";
+import "@uploadcare/react-uploader/core.css";
 import Swal from "sweetalert2";
 
 export default function Page() {
@@ -57,6 +59,7 @@ export default function Page() {
   return (
     <div>
       <div className="max-w-3xl mx-auto p-6 bg-white dark:bg-gray-900 rounded-xl shadow space-y-6">
+        {/* Header */}
         <div className="flex items-center gap-3">
           <FaArrowLeft
             onClick={() => router.back()}
@@ -67,6 +70,7 @@ export default function Page() {
           </h1>
         </div>
 
+        {/* Form */}
         <form className="space-y-4 text-black" onSubmit={handleSubmit}>
           {/* Nama Produk */}
           <div>
@@ -113,7 +117,7 @@ export default function Page() {
             />
           </div>
 
-          {/* Harga & Stok */}
+          {/* Harga */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -130,26 +134,50 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Upload Gambar */}
+          {/* Upload / URL Gambar */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              URL Gambar Produk
+              Gambar Produk
             </label>
+            <p className="text-xs text-gray-500 mb-2">
+              Masukkan URL manual atau upload file. Upload otomatis mengisi URL.
+            </p>
+
+            {/* Input URL Manual */}
             <input
               type="text"
               placeholder="https://example.com/image.jpg"
-              className="mt-1 w-full px-4 py-2 border rounded-md text-sm dark:bg-gray-800 dark:text-white dark:border-gray-700"
+              className="w-full px-4 py-2 mb-3 border rounded-md text-sm dark:bg-gray-800 dark:text-white dark:border-gray-700"
               name="imgUrl"
               value={product.imgUrl}
               onChange={handleChange}
             />
-            {product.imgUrl && (
-              <img
-                src={product.imgUrl}
-                alt="product"
-                className="w-32 h-32 sm:w-48 sm:h-48 object-cover mt-3"
-              />
-            )}
+
+            {/* File Uploader */}
+            <div className="flex-1 h-52 bg-neutral-50 rounded-lg border border-dashed border-gray-300 flex items-center justify-center relative cursor-pointer overflow-hidden">
+              {product.imgUrl ? (
+                <img
+                  src={product.imgUrl}
+                  alt="Preview"
+                  className="object-contain max-h-full"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-gray-400 text-sm italic">
+                  <FaCloudUploadAlt size={32} />
+                  Upload Image
+                </div>
+              )}
+
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 bg-black/5 transition">
+                <FileUploaderRegular
+                  pubkey="33563ee22dfa473493de"
+                  onFileUploadSuccess={(result) => {
+                    console.log("Upload success:", result);
+                    setProduct({ ...product, imgUrl: result.cdnUrl });
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Tombol Aksi */}

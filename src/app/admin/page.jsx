@@ -291,7 +291,7 @@ function AdminHome() {
                         <ul className="mt-2 list-disc list-inside bg-gray-50 p-3 rounded-md">
                           {merchantData.customers.map((c) => (
                             <li key={c.id} className="text-gray-700">
-                              {c.email}
+                              {c.name || c.email}
                             </li>
                           ))}
                         </ul>

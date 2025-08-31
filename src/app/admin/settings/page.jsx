@@ -17,7 +17,7 @@ export default function SettingsPage() {
 
   const [storeName, setStoreName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
-  const [taxRate, setTaxRate] = useState(11);
+  const [taxRate, setTaxRate] = useState(null);
   const [promoType, setPromoType] = useState("point");
   const [pointsPerAmount, setPointsPerAmount] = useState(1000);
   const [stampThreshold, setStampThreshold] = useState(10);
@@ -54,7 +54,7 @@ export default function SettingsPage() {
           setMerchant({ id: doc.id, ...data });
           setStoreName(data.name || "");
           setLogoUrl(data.logoUrl || "");
-          setTaxRate(data.taxRate || 11);
+          setTaxRate(data.taxRate);
           if (data.promotionSettings && data.promotionSettings.type) {
             setPromoType(data.promotionSettings.type);
             setPointsPerAmount(data.promotionSettings.pointsPerAmount || 1000);

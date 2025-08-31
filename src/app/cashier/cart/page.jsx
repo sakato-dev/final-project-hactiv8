@@ -12,7 +12,7 @@ import { db } from "@/lib/firebase";
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart } = useCart();
   const { userProfile } = useAuth();
-  const [taxRate, setTaxRate] = useState(0.11);
+  const [taxRate, setTaxRate] = useState(0);
 
   // Fetch merchant tax rate
   useEffect(() => {
@@ -21,7 +21,7 @@ export default function CartPage() {
       const unsubscribe = onSnapshot(merchantRef, (docSnap) => {
         if (docSnap.exists()) {
           const merchantData = docSnap.data();
-          setTaxRate((merchantData.taxRate || 11) / 100);
+          setTaxRate(merchantData.taxRate / 100);
         }
       });
       return () => unsubscribe();

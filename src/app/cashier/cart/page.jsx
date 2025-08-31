@@ -15,7 +15,7 @@ export default function CartPage() {
       (sum, item) => sum + item.price * item.quantity,
       0
     );
-    const tax = subTotal * 0.1; // 10% Tax
+    const tax = subTotal * 0.11; // 11% Tax
     return { subTotal, tax, total: subTotal + tax };
   }, [cartItems]);
 
@@ -174,7 +174,7 @@ export default function CartPage() {
                   </span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>Tax (10%)</span>
+                  <span>Tax (11%)</span>
                   <span className="font-semibold text-gray-800">
                     {formatRupiah(tax)}
                   </span>

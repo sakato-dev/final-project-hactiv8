@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { CartProvider, useCart } from "@/contexts/CartContext";
-import { auth } from "@/lib/firebase";
 import { useRouter, usePathname } from "next/navigation";
 import Swal from "sweetalert2";
 import {
@@ -14,15 +12,17 @@ import {
   FaTimes,
   FaSignOutAlt,
 } from "react-icons/fa";
+import { CartProvider, useCart } from "@/contexts/CartContext";
+import { auth } from "@/lib/firebase";
 
-// Helper function untuk format waktu
+// Helper function to format date and time (moved outside the component)
 const formatDateTime = (date) => {
   const options = {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
     hour12: false,
-    timeZone: "Asia/Jakarta",
+    timeZone: "Asia/Jakarta", // WIB
   };
   const time = new Intl.DateTimeFormat("en-GB", options).format(date);
   const day = String(date.getDate()).padStart(2, "0");
@@ -31,22 +31,31 @@ const formatDateTime = (date) => {
   return `${time} ${day}/${month}/${year}`;
 };
 
+// Navigation items constant (moved outside the component)
+const navItems = [
+  { href: "/cashier/home", icon: FaHome, label: "Home" },
+  { href: "/cashier/cart", icon: FaShoppingCart, label: "Cart" },
+  { href: "/cashier/scan-qr", icon: FaQrcode, label: "Scan QR" },
+];
+
 function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { cartCount } = useCart();
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isOpen, setIsOpen] = useState(false); // State untuk menu mobile
-  const [currentTime, setCurrentTime] = useState(new Date()); // State untuk jam
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
   const dropdownRef = useRef(null);
 
-  // Effect untuk jam real-time
+  // Effect for the real-time clock
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Effect untuk menutup dropdown saat klik di luar
+  // Effect to close the dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -61,14 +70,14 @@ function Navbar() {
 
   const handleLogout = () => {
     Swal.fire({
-      title: "Yakin mau logout?",
-      text: "Kamu bisa login lagi kapan saja.",
+      title: "Are you sure you want to log out?",
+      text: "You can log in again at any time.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#f97316",
-      cancelButtonColor: "#6b7280",
-      confirmButtonText: "Ya, Logout",
-      cancelButtonText: "Batal",
+      confirmButtonColor: "#f97316", // Orange-600
+      cancelButtonColor: "#6b7280", // Gray-500
+      confirmButtonText: "Yes, Log Out",
+      cancelButtonText: "Cancel",
     }).then((result) => {
       if (result.isConfirmed) {
         auth.signOut().then(() => {
@@ -78,24 +87,18 @@ function Navbar() {
     });
   };
 
-  const navItems = [
-    { href: "/cashier/home", icon: FaHome, label: "Home" },
-    { href: "/cashier/cart", icon: FaShoppingCart, label: "Cart" },
-    { href: "/cashier/scan-qr", icon: FaQrcode, label: "Scan QR" },
-  ];
-
   return (
     <nav className="bg-white border-b border-neutral-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Kolom Kiri: Logo */}
+          {/* Left Column: Logo */}
           <div className="flex-1 flex justify-start">
             <span className="text-zinc-900 text-xl font-semibold font-['Poppins']">
-              Kasir
+              Cashier
             </span>
           </div>
 
-          {/* Kolom Tengah: Menu (Desktop) */}
+          {/* Center Column: Desktop Menu */}
           <div className="hidden md:flex justify-center">
             <div className="flex items-center gap-8">
               {navItems.map((item) => (
@@ -128,7 +131,7 @@ function Navbar() {
             </div>
           </div>
 
-          {/* Kolom Kanan: Jam & Avatar (Desktop) */}
+          {/* Right Column: Clock & Avatar (Desktop) */}
           <div className="hidden md:flex flex-1 justify-end">
             <div className="flex items-center gap-4">
               <span className="tabular-nums text-zinc-900 text-md leading-tight">
@@ -157,27 +160,27 @@ function Navbar() {
             </div>
           </div>
 
-          {/* Tampilan Mobile: Tombol Hamburger */}
+          {/* Mobile View: Hamburger Button */}
           <div className="md:hidden flex items-center pr-2">
             <button
-              onClick={() => setIsOpen(!isOpen)}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="text-2xl text-gray-700"
             >
-              {isOpen ? <FaTimes /> : <FaBars />}
+              {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Panel Menu Mobile */}
-      {isOpen && (
+      {/* Mobile Menu Panel */}
+      {isMobileMenuOpen && (
         <div className="md:hidden bg-white shadow-lg border-t">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setIsOpen(false)}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 <div
                   className={`relative flex items-center gap-3 px-3 py-3 rounded-md font-medium cursor-pointer ${
@@ -188,7 +191,6 @@ function Navbar() {
                 >
                   <div className="relative">
                     <item.icon className="w-5 h-5" />
-                    {/* ✅ Badge tampil di mobile */}
                     {item.href === "/cashier/cart" && cartCount > 0 && (
                       <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full">
                         {cartCount}
@@ -201,7 +203,8 @@ function Navbar() {
             ))}
 
             <div className="border-t my-2"></div>
-            {/* Info User & Logout di Mobile */}
+
+            {/* User Info & Logout in Mobile Menu */}
             <div className="px-3 py-2 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <img
@@ -211,7 +214,7 @@ function Navbar() {
                 />
                 <div className="text-sm">
                   <p className="font-semibold text-gray-800">
-                    {auth.currentUser?.displayName || "Pengguna"}
+                    {auth.currentUser?.displayName || "User"}
                   </p>
                   <p className="text-gray-500">{auth.currentUser?.email}</p>
                 </div>
@@ -220,9 +223,9 @@ function Navbar() {
               <button
                 onClick={handleLogout}
                 title="Logout"
-                className="flex items-center gap-2 p-2 text-gray-600 hover:text-red-500"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md"
               >
-                <FaSignOutAlt size={20} />
+                <FaSignOutAlt />
                 <span>Logout</span>
               </button>
             </div>

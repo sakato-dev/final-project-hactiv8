@@ -17,7 +17,7 @@ export default function AdminLayout({ children }) {
             isSideBarOpen={isSidebarOpen}
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           />
-          <main className="flex-1 min-h-screen">{children}</main>
+          <main className="flex-1 min-h-screen text-gray-800">{children}</main>
         </div>
       </div>
     </ProtectedRoute>

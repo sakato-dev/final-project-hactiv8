@@ -14,10 +14,13 @@ export default function SettingsPage() {
 
   const [storeName, setStoreName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [taxRate, setTaxRate] = useState(11); // State baru untuk pajak
   const [promoType, setPromoType] = useState("point");
   const [pointsPerAmount, setPointsPerAmount] = useState(1000);
   const [stampThreshold, setStampThreshold] = useState(10);
   const [stampReward, setStampReward] = useState("");
+  const [stampPerAmount, setStampPerAmount] = useState(50000);
+  const [isPromoSettingDisabled, setIsPromoSettingDisabled] = useState(false);
 
   const router = useRouter();
 
@@ -48,10 +51,15 @@ export default function SettingsPage() {
           setMerchant({ id: doc.id, ...data });
           setStoreName(data.name || "");
           setLogoUrl(data.logoUrl || "");
-          setPromoType(data.promotionSettings?.type || "point");
-          setPointsPerAmount(data.promotionSettings?.pointsPerAmount || 1000);
-          setStampThreshold(data.promotionSettings?.stampThreshold || 10);
-          setStampReward(data.promotionSettings?.stampReward || "");
+          setTaxRate(data.taxRate || 11); // Ambil data pajak
+          if (data.promotionSettings && data.promotionSettings.type) {
+            setPromoType(data.promotionSettings.type);
+            setPointsPerAmount(data.promotionSettings.pointsPerAmount || 1000);
+            setStampThreshold(data.promotionSettings.stampThreshold || 10);
+            setStampReward(data.promotionSettings.stampReward || "");
+            setStampPerAmount(data.promotionSettings.stampPerAmount || 50000);
+            setIsPromoSettingDisabled(true);
+          }
         }
         setLoading(false);
       });
@@ -64,17 +72,27 @@ export default function SettingsPage() {
     setSaving(true);
     try {
       const merchantRef = doc(db, "merchants", userProfile.merchantId);
-      await updateDoc(merchantRef, {
+      const updateData = {
         name: storeName,
         logoUrl: logoUrl,
-        promotionSettings: {
+        taxRate: Number(taxRate), // Simpan data pajak
+      };
+
+      if (!isPromoSettingDisabled) {
+        updateData.promotionSettings = {
           type: promoType,
           pointsPerAmount: Number(pointsPerAmount),
           stampThreshold: Number(stampThreshold),
           stampReward: stampReward,
-        },
-      });
+          stampPerAmount: Number(stampPerAmount),
+        };
+      }
+
+      await updateDoc(merchantRef, updateData);
       alert("Pengaturan berhasil disimpan!");
+      if (!isPromoSettingDisabled) {
+        setIsPromoSettingDisabled(true);
+      }
     } catch (error) {
       console.error("Error updating settings: ", error);
       alert("Gagal menyimpan pengaturan.");
@@ -132,12 +150,30 @@ export default function SettingsPage() {
                 />
               )}
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Pajak (%)
+              </label>
+              <input
+                type="number"
+                value={taxRate}
+                onChange={(e) => setTaxRate(e.target.value)}
+                className="mt-1 w-full px-3 py-2 border rounded-md"
+                placeholder="Contoh: 11"
+              />
+            </div>
           </div>
         </div>
 
         {/* Promotion Settings */}
         <div>
           <h2 className="text-xl font-semibold mb-4">Pengaturan Promosi</h2>
+          {isPromoSettingDisabled && (
+            <p className="text-sm text-yellow-600 bg-yellow-100 p-3 rounded-md mb-4">
+              Pengaturan promosi hanya dapat diatur sekali dan tidak dapat
+              diubah.
+            </p>
+          )}
           <div className="space-y-4">
             <div className="flex items-center gap-6">
               <label className="flex items-center">
@@ -148,6 +184,7 @@ export default function SettingsPage() {
                   checked={promoType === "point"}
                   onChange={() => setPromoType("point")}
                   className="mr-2"
+                  disabled={isPromoSettingDisabled}
                 />
                 Sistem Poin
               </label>
@@ -159,6 +196,7 @@ export default function SettingsPage() {
                   checked={promoType === "stamp"}
                   onChange={() => setPromoType("stamp")}
                   className="mr-2"
+                  disabled={isPromoSettingDisabled}
                 />
                 Sistem Stempel (Stamp)
               </label>
@@ -176,6 +214,7 @@ export default function SettingsPage() {
                   onChange={(e) => setPointsPerAmount(e.target.value)}
                   className="mt-1 w-full px-3 py-2 border rounded-md"
                   placeholder="Contoh: 1000 (1 poin per Rp 1000)"
+                  disabled={isPromoSettingDisabled}
                 />
               </div>
             )}
@@ -183,6 +222,19 @@ export default function SettingsPage() {
             {/* Stamp System Logic */}
             {promoType === "stamp" && (
               <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Stempel per (Rp)
+                  </label>
+                  <input
+                    type="number"
+                    value={stampPerAmount}
+                    onChange={(e) => setStampPerAmount(e.target.value)}
+                    className="mt-1 w-full px-3 py-2 border rounded-md"
+                    placeholder="Contoh: 50000 (1 stempel per Rp 50000)"
+                    disabled={isPromoSettingDisabled}
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Jumlah stempel untuk hadiah
@@ -193,6 +245,7 @@ export default function SettingsPage() {
                     onChange={(e) => setStampThreshold(e.target.value)}
                     className="mt-1 w-full px-3 py-2 border rounded-md"
                     placeholder="Contoh: 10"
+                    disabled={isPromoSettingDisabled}
                   />
                 </div>
                 <div>
@@ -205,6 +258,7 @@ export default function SettingsPage() {
                     onChange={(e) => setStampReward(e.target.value)}
                     className="mt-1 w-full px-3 py-2 border rounded-md"
                     placeholder="Contoh: Gratis 1 Es Kopi Susu"
+                    disabled={isPromoSettingDisabled}
                   />
                 </div>
               </div>

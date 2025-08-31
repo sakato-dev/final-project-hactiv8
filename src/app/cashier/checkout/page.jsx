@@ -23,8 +23,6 @@ import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
 import { FaBackspace } from "react-icons/fa";
 
-const TAX_RATE = 0.11; // 11% PPN
-
 export default function CheckoutPage() {
   const { userProfile } = useAuth();
   const { cartItems, clearCart, scannedCustomerId, scannedTransactionId } =
@@ -33,7 +31,9 @@ export default function CheckoutPage() {
 
   const [customerId, setCustomerId] = useState(scannedCustomerId || "");
   const [merchant, setMerchant] = useState(null);
+  const [taxRate, setTaxRate] = useState(0.11); // State baru untuk pajak
   const [pointsAwarded, setPointsAwarded] = useState(0);
+  const [stampsAwarded, setStampsAwarded] = useState(0);
 
   const [customerPay, setCustomerPay] = useState("");
   const [changeAmount, setChangeAmount] = useState(0);
@@ -50,7 +50,7 @@ export default function CheckoutPage() {
     (total, item) => total + item.price * item.quantity,
     0
   );
-  const tax = subTotal * TAX_RATE;
+  const tax = subTotal * taxRate;
   const totalOrder = subTotal + tax;
 
   // Realtime update change amount
@@ -58,7 +58,7 @@ export default function CheckoutPage() {
     setChangeAmount(Math.max((Number(customerPay) || 0) - totalOrder, 0));
   }, [customerPay, totalOrder]);
 
-  // Fetch merchant & promotion points
+  // Fetch merchant, promotion points, and tax
   useEffect(() => {
     if (userProfile?.merchantId) {
       const merchantRef = doc(db, "merchants", userProfile.merchantId);
@@ -66,12 +66,17 @@ export default function CheckoutPage() {
         if (docSnap.exists()) {
           const merchantData = docSnap.data();
           setMerchant(merchantData);
+          setTaxRate((merchantData.taxRate || 11) / 100);
 
           if (merchantData.promotionSettings?.type === "point") {
             const rate = merchantData.promotionSettings.pointsPerAmount || 1;
             const points = Math.floor(totalOrder / rate);
             setPointsAwarded(points);
-          } else {
+            setStampsAwarded(0);
+          } else if (merchantData.promotionSettings?.type === "stamp") {
+            const rate = merchantData.promotionSettings.stampPerAmount || 1;
+            const stamps = Math.floor(totalOrder / rate);
+            setStampsAwarded(stamps);
             setPointsAwarded(0);
           }
         }
@@ -197,6 +202,7 @@ export default function CheckoutPage() {
           quantity,
         })),
         pointsAwarded,
+        stampsAwarded,
         createdAt: serverTimestamp(),
       };
 
@@ -225,16 +231,21 @@ export default function CheckoutPage() {
         await updateDoc(membershipDocRef, { points: increment(pointsAwarded) });
       } else if (merchant?.promotionSettings?.type === "stamp") {
         const { stampThreshold, stampReward } = merchant.promotionSettings;
-        const newStampCount = (membershipDoc.data()?.stamps || 0) + 1;
+        const currentStamps = membershipDoc.data()?.stamps || 0;
+        const newStampCount = currentStamps + stampsAwarded;
+
         if (newStampCount >= stampThreshold) {
-          await updateDoc(membershipDocRef, { stamps: 0 });
+          const remainingStamps = newStampCount % stampThreshold;
+          await updateDoc(membershipDocRef, { stamps: remainingStamps });
           Swal.fire(
             "Reward!",
             `Customer is eligible for: ${stampReward}`,
             "success"
           );
         } else {
-          await updateDoc(membershipDocRef, { stamps: increment(1) });
+          await updateDoc(membershipDocRef, {
+            stamps: increment(stampsAwarded),
+          });
         }
       }
 
@@ -318,7 +329,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">
-                    Tax ({(TAX_RATE * 100).toFixed(0)}%)
+                    Tax ({(taxRate * 100).toFixed(0)}%)
                   </span>
                   <span className="text-gray-800">{formatRupiah(tax)}</span>
                 </div>
@@ -504,10 +515,13 @@ export default function CheckoutPage() {
                 </p>
               </div>
             )}
-            {merchant?.promotionSettings?.type === "stamp" && (
+            {stampsAwarded > 0 && (
               <div className="p-3 bg-green-50 rounded-lg text-center">
                 <p className="text-gray-800">
-                  Stamps will be added for this transaction.
+                  Stamps to be awarded:{" "}
+                  <span className="font-bold text-green-600">
+                    {stampsAwarded}
+                  </span>
                 </p>
               </div>
             )}

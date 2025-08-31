@@ -31,7 +31,7 @@ export default function StaffPage() {
   }, [userProfile]);
 
   useEffect(() => {
-    if (!merchantId) {
+    if (!userProfile?.merchantId) {
       Swal.fire({
         title: "Toko belum dibuat",
         text: "Silakan buat toko terlebih dahulu.",

@@ -2,12 +2,31 @@
 import { useCart } from "@/contexts/CartContext";
 import formatRupiah from "@/utils/FormatRupiah";
 import Link from "next/link";
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { FaPlus, FaMinus, FaTrash } from "react-icons/fa";
+import { useAuth } from "@/contexts/auth-context";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart } = useCart();
+  const { userProfile } = useAuth();
+  const [taxRate, setTaxRate] = useState(0.11);
+
+  // Fetch merchant tax rate
+  useEffect(() => {
+    if (userProfile?.merchantId) {
+      const merchantRef = doc(db, "merchants", userProfile.merchantId);
+      const unsubscribe = onSnapshot(merchantRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const merchantData = docSnap.data();
+          setTaxRate((merchantData.taxRate || 11) / 100);
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [userProfile]);
 
   // Calculate subtotal, tax, and total
   const { subTotal, tax, total } = useMemo(() => {
@@ -15,9 +34,9 @@ export default function CartPage() {
       (sum, item) => sum + item.price * item.quantity,
       0
     );
-    const tax = subTotal * 0.11; // 11% Tax
+    const tax = subTotal * taxRate;
     return { subTotal, tax, total: subTotal + tax };
-  }, [cartItems]);
+  }, [cartItems, taxRate]);
 
   const handleRemove = (item) => {
     removeFromCart(item.id);
@@ -174,7 +193,7 @@ export default function CartPage() {
                   </span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>Tax (11%)</span>
+                  <span>Tax ({(taxRate * 100).toFixed(0)}%)</span>
                   <span className="font-semibold text-gray-800">
                     {formatRupiah(tax)}
                   </span>

@@ -20,6 +20,12 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "4jl1filt2j.ucarecd.net",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };

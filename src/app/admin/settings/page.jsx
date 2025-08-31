@@ -5,6 +5,9 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/auth-context";
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
+import { FaCloudUploadAlt } from "react-icons/fa";
+import { FileUploaderRegular } from "@uploadcare/react-uploader";
+import "@uploadcare/react-uploader/core.css";
 
 export default function SettingsPage() {
   const { userProfile } = useAuth();
@@ -14,7 +17,7 @@ export default function SettingsPage() {
 
   const [storeName, setStoreName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
-  const [taxRate, setTaxRate] = useState(11); // State baru untuk pajak
+  const [taxRate, setTaxRate] = useState(11);
   const [promoType, setPromoType] = useState("point");
   const [pointsPerAmount, setPointsPerAmount] = useState(1000);
   const [stampThreshold, setStampThreshold] = useState(10);
@@ -51,7 +54,7 @@ export default function SettingsPage() {
           setMerchant({ id: doc.id, ...data });
           setStoreName(data.name || "");
           setLogoUrl(data.logoUrl || "");
-          setTaxRate(data.taxRate || 11); // Ambil data pajak
+          setTaxRate(data.taxRate || 11);
           if (data.promotionSettings && data.promotionSettings.type) {
             setPromoType(data.promotionSettings.type);
             setPointsPerAmount(data.promotionSettings.pointsPerAmount || 1000);
@@ -75,7 +78,7 @@ export default function SettingsPage() {
       const updateData = {
         name: storeName,
         logoUrl: logoUrl,
-        taxRate: Number(taxRate), // Simpan data pajak
+        taxRate: Number(taxRate),
       };
 
       if (!isPromoSettingDisabled) {
@@ -89,7 +92,7 @@ export default function SettingsPage() {
       }
 
       await updateDoc(merchantRef, updateData);
-      alert("Pengaturan berhasil disimpan!");
+      Swal.fire("Berhasil", "Pengaturan berhasil disimpan", "success");
       if (!isPromoSettingDisabled) {
         setIsPromoSettingDisabled(true);
       }
@@ -114,62 +117,82 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Pengaturan Toko</h1>
       <form
         onSubmit={handleSave}
-        className="max-w-2xl bg-white p-6 rounded-lg shadow-md space-y-6"
+        className="max-w-2xl bg-white p-6 rounded-lg shadow-md space-y-8"
       >
         {/* Profile Settings */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Profil Toko</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Nama Toko
-              </label>
-              <input
-                type="text"
-                value={storeName}
-                onChange={(e) => setStoreName(e.target.value)}
-                className="mt-1 w-full px-3 py-2 border rounded-md"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                URL Logo Toko
-              </label>
-              <input
-                type="text"
-                placeholder="https://example.com/logo.png"
-                value={logoUrl}
-                onChange={(e) => setLogoUrl(e.target.value)}
-                className="mt-1 w-full px-3 py-2 border rounded-md"
-              />
-              {logoUrl && (
-                <img
-                  src={logoUrl}
-                  alt="Logo Preview"
-                  className="mt-2 h-20 w-20 object-cover rounded-md"
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold text-gray-800 border-b pb-3">
+            Profil Toko
+          </h2>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Nama Toko
+            </label>
+            <input
+              type="text"
+              value={storeName}
+              onChange={(e) => setStoreName(e.target.value)}
+              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Logo Toko
+            </label>
+            <div className="mt-1 flex items-center gap-4">
+              <div className="w-24 h-24 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden border">
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt="Logo Preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <FaCloudUploadAlt size={32} className="text-gray-400" />
+                )}
+              </div>
+              <div className="flex-grow">
+                <input
+                  type="text"
+                  placeholder="Paste URL logo di sini..."
+                  value={logoUrl}
+                  onChange={(e) => setLogoUrl(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                 />
-              )}
+                <div className="text-xs text-gray-500 mt-2 flex items-center gap-2">
+                  <span>atau</span>
+                  <div className="relative">
+                    <FileUploaderRegular
+                      pubkey="33563ee22dfa473493de"
+                      onFileUploadSuccess={(res) => setLogoUrl(res.cdnUrl)}
+                      className="text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Pajak (%)
-              </label>
-              <input
-                type="number"
-                value={taxRate}
-                onChange={(e) => setTaxRate(e.target.value)}
-                className="mt-1 w-full px-3 py-2 border rounded-md"
-                placeholder="Contoh: 11"
-              />
-            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Pajak (%)
+            </label>
+            <input
+              type="number"
+              value={taxRate}
+              onChange={(e) => setTaxRate(e.target.value)}
+              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Contoh: 11"
+            />
           </div>
         </div>
 
         {/* Promotion Settings */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Pengaturan Promosi</h2>
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold text-gray-800 border-b pb-3">
+            Pengaturan Promosi
+          </h2>
           {isPromoSettingDisabled && (
-            <p className="text-sm text-yellow-600 bg-yellow-100 p-3 rounded-md mb-4">
+            <p className="text-sm text-yellow-600 bg-yellow-100 p-3 rounded-md">
               Pengaturan promosi hanya dapat diatur sekali dan tidak dapat
               diubah.
             </p>
@@ -183,7 +206,7 @@ export default function SettingsPage() {
                   value="point"
                   checked={promoType === "point"}
                   onChange={() => setPromoType("point")}
-                  className="mr-2"
+                  className="mr-2 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                   disabled={isPromoSettingDisabled}
                 />
                 Sistem Poin
@@ -195,14 +218,13 @@ export default function SettingsPage() {
                   value="stamp"
                   checked={promoType === "stamp"}
                   onChange={() => setPromoType("stamp")}
-                  className="mr-2"
+                  className="mr-2 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                   disabled={isPromoSettingDisabled}
                 />
                 Sistem Stempel (Stamp)
               </label>
             </div>
 
-            {/* Point System Logic */}
             {promoType === "point" && (
               <div>
                 <label className="block text-sm font-medium text-gray-700">
@@ -212,14 +234,13 @@ export default function SettingsPage() {
                   type="number"
                   value={pointsPerAmount}
                   onChange={(e) => setPointsPerAmount(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 border rounded-md"
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100"
                   placeholder="Contoh: 1000 (1 poin per Rp 1000)"
                   disabled={isPromoSettingDisabled}
                 />
               </div>
             )}
 
-            {/* Stamp System Logic */}
             {promoType === "stamp" && (
               <div className="space-y-4">
                 <div>
@@ -230,7 +251,7 @@ export default function SettingsPage() {
                     type="number"
                     value={stampPerAmount}
                     onChange={(e) => setStampPerAmount(e.target.value)}
-                    className="mt-1 w-full px-3 py-2 border rounded-md"
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100"
                     placeholder="Contoh: 50000 (1 stempel per Rp 50000)"
                     disabled={isPromoSettingDisabled}
                   />
@@ -243,7 +264,7 @@ export default function SettingsPage() {
                     type="number"
                     value={stampThreshold}
                     onChange={(e) => setStampThreshold(e.target.value)}
-                    className="mt-1 w-full px-3 py-2 border rounded-md"
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100"
                     placeholder="Contoh: 10"
                     disabled={isPromoSettingDisabled}
                   />
@@ -256,7 +277,7 @@ export default function SettingsPage() {
                     type="text"
                     value={stampReward}
                     onChange={(e) => setStampReward(e.target.value)}
-                    className="mt-1 w-full px-3 py-2 border rounded-md"
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100"
                     placeholder="Contoh: Gratis 1 Es Kopi Susu"
                     disabled={isPromoSettingDisabled}
                   />
@@ -267,7 +288,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Save Button */}
-        <div className="pt-4">
+        <div className="pt-4 border-t">
           <button
             type="submit"
             disabled={saving}

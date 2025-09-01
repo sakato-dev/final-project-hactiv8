@@ -98,7 +98,7 @@ export default function RegisterAdmin() {
 
             <p className="text-center text-sm text-white mt-6">
               <Link href="/auth/register-admin" className="p-2 text-white">
-                Daftar sebagai Admin? Register di sini!
+                Daftar sebagai Merchant? Register di sini!
               </Link>
             </p>
 

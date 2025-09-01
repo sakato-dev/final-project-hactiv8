@@ -86,7 +86,7 @@ export default function RegisterAdmin() {
                 type="submit"
                 className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300"
               >
-                Register as Admin
+                Register as Merchant
               </button>
             </form>
 

@@ -8,6 +8,7 @@ import Footer from "@/components/landing-page/footer";
 import Testimonials from "@/components/landing-page/testimonials";
 import Partners from "@/components/landing-page/partners";
 import MyPoints from "@/components/landing-page/myPoints";
+import Promotions from "@/components/landing-page/promotion";
 
 export default function Home() {
   return (
@@ -25,11 +26,14 @@ export default function Home() {
         <section id="mypoints">
           <MyPoints />
         </section>
-        <Features />
+        <section id="features">
+          <Features />
+        </section>
         <Testimonials />
         <section id="faq">
           <Faq />
         </section>
+        <Promotions />
         <Footer />
       </main>
     </div>

@@ -18,7 +18,8 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="text-white relative z-50">
+    // Penambahan kelas untuk membuat navbar fixed
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-sm text-white">
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
@@ -29,12 +30,13 @@ export default function Navbar() {
                 alt="PointJuaro Logo"
                 width={120}
                 height={50}
+                className="h-6 w-auto"
               />
             </Link>
           </div>
 
           {/* Navigasi untuk Desktop */}
-          <ul className="hidden md:flex items-center justify-center gap-10">
+          <ul className="hidden md:flex items-center justify-center font-base gap-10">
             {navLinks.map((link) => (
               <li key={link.label}>
                 <Link
@@ -51,10 +53,10 @@ export default function Navbar() {
           <div className="hidden md:block flex-shrink-0">
             <Link
               href="#"
-              className="inline-flex rounded-full border border-red-500/70 px-5 py-2 text-sm
-                         hover:border-red-400 hover:text-red-200 transition text-red-500"
+              className="inline-flex rounded-full border-2 border-blue-700 px-8 py-2 text-sm
+                         hover:bg-blue-700 hover:text-white transition text-white font-medium"
             >
-              Contact Us
+              Contact
             </Link>
           </div>
 
@@ -88,11 +90,11 @@ export default function Navbar() {
             <li>
               <Link
                 href="#"
-                className="mt-4 inline-flex rounded-full border border-red-500/70 px-6 py-2 text-base
-                           hover:border-red-400 hover:text-red-200 transition text-red-500"
+                className="mt-4 inline-flex rounded-full border-2 border-blue-700 px-8 py-2 text-base
+                           hover:bg-blue-700 hover:text-white transition text-white font-medium"
                 onClick={() => setIsOpen(false)}
               >
-                Contact Us
+                Contact
               </Link>
             </li>
           </ul>

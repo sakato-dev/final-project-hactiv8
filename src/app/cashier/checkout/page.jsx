@@ -31,7 +31,7 @@ export default function CheckoutPage() {
 
   const [customerId, setCustomerId] = useState(scannedCustomerId || "");
   const [merchant, setMerchant] = useState(null);
-  const [taxRate, setTaxRate] = useState(0.11); // State baru untuk pajak
+  const [taxRate, setTaxRate] = useState(0); // State baru untuk pajak
   const [pointsAwarded, setPointsAwarded] = useState(0);
   const [stampsAwarded, setStampsAwarded] = useState(0);
 
@@ -66,7 +66,7 @@ export default function CheckoutPage() {
         if (docSnap.exists()) {
           const merchantData = docSnap.data();
           setMerchant(merchantData);
-          setTaxRate((merchantData.taxRate || 11) / 100);
+          setTaxRate(merchantData.taxRate / 100);
 
           if (merchantData.promotionSettings?.type === "point") {
             const rate = merchantData.promotionSettings.pointsPerAmount || 1;

@@ -1,62 +1,78 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Hero() {
   return (
     <section className="relative overflow-hidden text-white">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-10 py-16 md:grid-cols-2 md:py-24 lg:px-6">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-10 py-16 md:grid-cols-2 md:py-24 lg:px-6 items-center">
+        {/* Kolom Kiri: Teks */}
         <div className="relative z-10">
-          <h1 className="relative text-4xl font-semibold leading-tight md:text-5xl lg:text-6xl">
+          <h1 className="relative py-6 text-4xl font-bold leading-tight md:text-4xl lg:text-5xl">
             Discover the Perfect
             <br />
             <span className="relative inline-block">
-              Loyalty Program
-              <img
-                src="/curvedredstroke.png"
-                alt=""
-                aria-hidden
-                width={360}
-                height={100}
-                className="pointer-events-none absolute left-[-8%] top-[78%] w-[92%] select-none"
-              />
+              Digital Membercard
+              {/* Anda bisa menggunakan gambar underline dari desain jika ada */}
             </span>
             <br />
             for You
           </h1>
 
-          <p className="mt-6 max-w-xl text-base/7 text-white/85 md:text-lg/8">
-            Discover the power of our secure and rewarding loyalty program.
-            Explore digital membercards and enjoy exclusive benefits made just
-            for you.
+          <p className="mt-6 max-w-xl text-zinc-400 text-lg font-normal leading-normal">
+            Discover the power of our secure and rewarding digital membercards.
+            Explore our range of cards and take control of your loyalty points
+            today.
           </p>
 
           <div className="mt-8 flex items-center gap-4">
             <Link
-              href="#get-started"
-              className="inline-flex items-center gap-2 rounded-full bg-red-600 px-6 py-3 text-sm font-medium hover:bg-red-700 transition"
+              href="#"
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-8 py-3 text-base font-medium hover:bg-blue-600 transition"
             >
               Get Started
-              <span className="inline-block h-2 w-2 rounded-full bg-white/70" />
             </Link>
           </div>
 
-          <div className="mt-6 flex items-center gap-3">
-            <div className="flex -space-x-2">
-              <span className="inline-block h-8 w-8 rounded-full bg-gradient-to-br from-yellow-300 to-orange-500 ring-2 ring-[#160b0b]" />
-              <span className="inline-block h-8 w-8 rounded-full bg-gradient-to-br from-pink-300 to-red-500 ring-2 ring-[#160b0b]" />
-              <span className="inline-block h-8 w-8 rounded-full bg-gradient-to-br from-sky-300 to-indigo-500 ring-2 ring-[#160b0b]" />
+          <div className="mt-8 flex items-center gap-4">
+            <div className="flex -space-x-4">
+              {/* Placeholder untuk avatar pengguna */}
+              <img
+                className="w-12 h-12 rounded-full border-2 border-black object-cover"
+                src="https://i.pravatar.cc/48?img=1"
+                alt="user 1"
+              />
+              <img
+                className="w-12 h-12 rounded-full border-2 border-black object-cover"
+                src="https://i.pravatar.cc/48?img=2"
+                alt="user 2"
+              />
+              <img
+                className="w-12 h-12 rounded-full border-2 border-black object-cover"
+                src="https://i.pravatar.cc/48?img=3"
+                alt="user 3"
+              />
             </div>
-            <p className="text-sm text-white/90">
-              <span className="font-semibold">10.2k+</span> Active users around
-              the world
-            </p>
+            <div className="inline-flex flex-col items-start">
+              <p className="font-bold">10.2k+</p>
+              <p className="text-zinc-400 text-xs">
+                Active users around the world
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="pointer-events-none absolute inset-y-0 right-0 hidden md:flex items-center justify-end">
-          <img
-            src="/creditcard.png"
-            alt="Credit card"
-            className="mr-0 w-[600px] lg:w-[680px] xl:w-[720px] max-w-[60vw] drop-shadow-[0_25px_35px_rgba(0,0,0,0.45)]"
+        {/* Kolom Kanan: Gambar */}
+        <div className="relative h-[400px] w-full flex items-center justify-center">
+          {/* Efek lingkaran biru di belakang kartu */}
+          <div className="absolute w-[492px] h-[492px] bg-blue-700 rounded-full blur-[200px] opacity-60"></div>
+
+          {/* Gambar Kartu */}
+          <Image
+            src="/card.png"
+            alt="Digital Membercard"
+            width={550}
+            height={320}
+            className="relative z-10 drop-shadow-2xl"
           />
         </div>
       </div>

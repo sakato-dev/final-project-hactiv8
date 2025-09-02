@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Swal from "sweetalert2";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -30,85 +31,115 @@ export default function RegisterAdmin() {
         uid: user.uid,
       });
 
-      router.push("/admin");
+      Swal.fire({
+        icon: "success",
+        title: "Registration Successful!",
+        text: "Your admin account has been created. Please login.",
+        confirmButtonColor: "#6366f1",
+      }).then(() => {
+        router.push("/auth/login");
+      });
     } catch (error) {
       console.error("Error registering:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Registration Failed",
+        text: error.message || "An error occurred during registration.",
+        confirmButtonColor: "#ef4444",
+      });
     }
   };
 
   return (
-    <div className="relative min-h-screen bg-[url('/bg-blue.png')] bg-cover bg-center">
-      <div className="absolute top-8 left-8 md:top-10 md:left-20">
-        <Image src="/logo.png" width={160} height={100} alt="PointJuaro" />
+    <div className="flex h-screen bg-[url('/bg-landingpage.png')] bg-cover bg-center relative">
+      {/* Sisi Kiri - Informasi Landing Page */}
+      <div className="w-1/2 flex-col justify-center items-start p-20 relative hidden md:flex">
+        <Image
+          src="/logo.png"
+          width={80}
+          height={80}
+          alt="PointJuaro"
+          className="w-34 drop-shadow-lg mb-8"
+        />
+        <h1 className="text-5xl font-extrabold text-white mb-16 drop-shadow-xl leading-tight">
+          Discover the Perfect
+          <br />
+          <span className="text-indigo-300">Loyalty Program</span> for You
+        </h1>
+        <p className="text-lg text-indigo-100 max-w-md">
+          Unlock exclusive rewards and seamless transactions with our digital
+          membercard platform.
+        </p>
       </div>
 
-      <div className="container mx-auto flex h-screen items-center px-6">
-        <div className="hidden md:flex md:w-1/2 flex-col justify-center pl-20">
-          <h1 className="text-5xl font-bold text-white leading-tight">
-            Discover the Perfect
-            <br />
-            Loyalty Program for You
-          </h1>
-        </div>
-
-        <div className="w-full md:w-1/2 flex justify-center items-center">
-          <div className="bg-black/20 backdrop-blur-lg p-8 sm:p-10 rounded-2xl shadow-2xl w-full max-w-md">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white">Welcome Back</h2>
-              <p className="text-gray-300 mt-2">
-                Please enter your details to sign in.
-              </p>
+      {/* Sisi Kanan - Form Register */}
+      <div className="w-full md:w-1/2 flex justify-center items-center min-h-screen">
+        <div className="bg-white/10 backdrop-blur-xl p-10 rounded-3xl shadow-2xl w-full max-w-md relative border border-white/20">
+          <div className="text-center mb-8">
+            <div className="inline-block mb-4">
+              <Image
+                src="/logo.png"
+                width={80}
+                height={80}
+                alt="PointJuaro"
+                className="w-32 drop-shadow-md"
+              />
             </div>
-
-            <form onSubmit={handleRegister} className="space-y-4">
-              <div>
-                <input
-                  type="email"
-                  placeholder="Email Address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300"
-              >
-                Register as Merchant
-              </button>
-            </form>
-
-            <p className="text-center text-sm text-white mt-6">
-              <Link href="/auth/login" className="p-2 text-white">
-                Sudah Punya Account? Login di sini!
-              </Link>
+            <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">
+              Register as Admin
+            </h2>
+            <p className="text-indigo-100 text-sm">
+              Create your admin account to get started.
             </p>
+          </div>
 
-            <p className="text-center text-sm text-white mt-6">
-              <Link href="/auth/register-customer" className="p-2 text-white">
-                Daftar sebagai Customer? Register di sini!
-              </Link>
-            </p>
-
-            <div className="flex items-center my-6">
-              <hr className="flex-grow border-white/20" />
-              <span className="mx-4 text-gray-400 text-sm">OR</span>
-              <hr className="flex-grow border-white/20" />
+          <form onSubmit={handleRegister} className="space-y-5">
+            <div>
+              <input
+                type="email"
+                placeholder="Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 border border-indigo-300 bg-white/20 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 placeholder:text-indigo-200"
+                required
+              />
             </div>
+            <div>
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-indigo-300 bg-white/20 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 placeholder:text-indigo-200"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold shadow-md hover:bg-indigo-700 transition duration-200"
+            >
+              Register as Admin
+            </button>
+          </form>
 
-            <button className="w-full flex items-center justify-center gap-2 py-3 border border-white/20 rounded-lg hover:bg-white/10 transition duration-300 text-sm text-white">
+          <div className="flex items-center justify-between mt-6">
+            <Link
+              href="/auth/login"
+              className="text-indigo-200 hover:underline text-sm"
+            >
+              Sudah punya akun? Login di sini
+            </Link>
+            <Link
+              href="/auth/register-customer"
+              className="text-indigo-200 hover:underline text-sm"
+            >
+              Daftar sebagai Customer
+            </Link>
+          </div>
+
+          <div className="flex items-center justify-center my-6 gap-2 text-sm text-indigo-100">
+            <span className="mr-2">Atau daftar dengan</span>
+            <button className="p-2 border border-indigo-300 rounded-full bg-white/10 hover:bg-indigo-100 hover:text-indigo-700 transition duration-200 text-xl">
               <FaGoogle />
               Login Dengan Google
             </button>

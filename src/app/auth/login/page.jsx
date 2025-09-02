@@ -27,7 +27,7 @@ export default function LoginPage() {
   return (
     <div className="flex h-screen bg-[url('/bg-landingpage.png')] bg-cover bg-center relative">
       {/* Sisi Kiri - Informasi Landing Page */}
-      <div className="absolute top-8 left-8 z-10">
+      {/* <div className="absolute top-8 left-8 z-10">
         <Image
           src="/logo.png"
           width={80}
@@ -35,7 +35,7 @@ export default function LoginPage() {
           alt="PointJuaro"
           className="w-32 drop-shadow-lg"
         />
-      </div>
+      </div> */}
       <div className="w-1/2 flex-col justify-center items-start p-20 relative hidden md:flex">
         <h1 className="text-5xl font-extrabold text-white mb-16 drop-shadow-xl leading-tight">
           Discover the Perfect
@@ -43,7 +43,8 @@ export default function LoginPage() {
           <span className="text-indigo-300">Loyalty Program</span> for You
         </h1>
         <p className="text-lg text-indigo-100 max-w-md">
-          Unlock exclusive rewards and seamless transactions with our digital membercard platform.
+          Unlock exclusive rewards and seamless transactions with our digital
+          membercard platform.
         </p>
       </div>
 
@@ -54,14 +55,18 @@ export default function LoginPage() {
             <div className="inline-block mb-4">
               <Image
                 src="/logo.png"
-                width={80}
-                height={80}
+                width={100}
+                height={100}
                 alt="PointJuaro"
-                className="w-24 drop-shadow-md"
+                className="w-32 drop-shadow-md"
               />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Sign in to your account</h2>
-            <p className="text-indigo-100 text-sm">Welcome back! Please enter your details.</p>
+            <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">
+              Sign in to your account
+            </h2>
+            <p className="text-indigo-100 text-sm">
+              Welcome back! Please enter your details.
+            </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
@@ -94,10 +99,15 @@ export default function LoginPage() {
           </form>
 
           <div className="flex items-center justify-between mt-6">
-            <Link href="/auth/register-customer" className="text-indigo-200 hover:underline text-sm">
+            <Link
+              href="/auth/register-customer"
+              className="text-indigo-200 hover:underline text-sm"
+            >
               Belum punya akun? Daftar di sini
             </Link>
-            <span className="text-indigo-200 text-sm cursor-pointer hover:underline">Lupa kata sandi?</span>
+            <span className="text-indigo-200 text-sm cursor-pointer hover:underline">
+              Lupa kata sandi?
+            </span>
           </div>
 
           <div className="flex items-center justify-center my-6 gap-2 text-sm text-indigo-100">

@@ -10,7 +10,7 @@ import Link from "next/link";
 import { FaGoogle } from "react-icons/fa";
 import Image from "next/image";
 
-export default function RegisterAdmin() {
+export default function RegisterCustomer() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
@@ -40,12 +40,11 @@ export default function RegisterAdmin() {
         router.push("/auth/login");
       });
     } catch (error) {
-      console.error("Error registering:", error);
       Swal.fire({
         icon: "error",
         title: "Registration Failed",
-        text: error.message || "An error occurred during registration.",
-        confirmButtonColor: "#ef4444",
+        text: error.message || "Something went wrong. Please try again.",
+        confirmButtonColor: "#6366f1",
       });
     }
   };
@@ -53,14 +52,16 @@ export default function RegisterAdmin() {
   return (
     <div className="flex h-screen bg-[url('/bg-landingpage.png')] bg-cover bg-center relative">
       {/* Sisi Kiri - Informasi Landing Page */}
-      <div className="w-1/2 flex-col justify-center items-start p-20 relative hidden md:flex">
+      <div className="absolute top-8 left-8 z-10">
         <Image
           src="/logo.png"
-          width={100}
-          height={100}
+          width={80}
+          height={80}
           alt="PointJuaro"
-          className="w-34 drop-shadow-lg mb-8"
+          className="w-32 drop-shadow-lg"
         />
+      </div>
+      <div className="w-1/2 flex-col justify-center items-start p-20 relative hidden md:flex">
         <h1 className="text-5xl font-extrabold text-white mb-16 drop-shadow-xl leading-tight">
           Discover the Perfect
           <br />
@@ -86,10 +87,10 @@ export default function RegisterAdmin() {
               />
             </div>
             <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">
-              Register as Customer
+              Register Customer
             </h2>
             <p className="text-indigo-100 text-sm">
-              Create your account to get started.
+              Create your account to start earning points!
             </p>
           </div>
 

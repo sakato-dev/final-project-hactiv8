@@ -27,7 +27,7 @@ export default function LoginPage() {
   return (
     <div className="flex h-screen bg-[url('/bg-landingpage.png')] bg-cover bg-center relative">
       {/* Sisi Kiri - Informasi Landing Page */}
-      {/* <div className="absolute top-8 left-8 z-10">
+      <div className="absolute top-8 left-8 z-10">
         <Image
           src="/logo.png"
           width={80}
@@ -35,7 +35,7 @@ export default function LoginPage() {
           alt="PointJuaro"
           className="w-32 drop-shadow-lg"
         />
-      </div> */}
+      </div>
       <div className="w-1/2 flex-col justify-center items-start p-20 relative hidden md:flex">
         <h1 className="text-5xl font-extrabold text-white mb-16 drop-shadow-xl leading-tight">
           Discover the Perfect
@@ -55,8 +55,8 @@ export default function LoginPage() {
             <div className="inline-block mb-4">
               <Image
                 src="/logo.png"
-                width={100}
-                height={100}
+                width={80}
+                height={80}
                 alt="PointJuaro"
                 className="w-32 drop-shadow-md"
               />

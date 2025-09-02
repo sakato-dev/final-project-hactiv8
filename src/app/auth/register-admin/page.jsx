@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Swal from "sweetalert2";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -30,9 +31,22 @@ export default function RegisterAdmin() {
         uid: user.uid,
       });
 
-      router.push("/admin");
+      Swal.fire({
+        icon: "success",
+        title: "Registration Successful!",
+        text: "Your admin account has been created. Please login.",
+        confirmButtonColor: "#6366f1",
+      }).then(() => {
+        router.push("/auth/login");
+      });
     } catch (error) {
       console.error("Error registering:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Registration Failed",
+        text: error.message || "An error occurred during registration.",
+        confirmButtonColor: "#ef4444",
+      });
     }
   };
 

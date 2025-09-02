@@ -37,7 +37,7 @@ export default function RegisterCustomer() {
         text: "Your account has been created. Please login.",
         confirmButtonColor: "#6366f1",
       }).then(() => {
-        router.push("/auth/login");
+        router.push("/customer");
       });
     } catch (error) {
       Swal.fire({

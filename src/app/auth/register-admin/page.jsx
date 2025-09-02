@@ -37,7 +37,7 @@ export default function RegisterAdmin() {
         text: "Your admin account has been created. Please login.",
         confirmButtonColor: "#6366f1",
       }).then(() => {
-        router.push("/auth/login");
+        router.push("/admin");
       });
     } catch (error) {
       console.error("Error registering:", error);

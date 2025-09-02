@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
+import { FileUploaderRegular } from "@uploadcare/react-uploader";
+import "@uploadcare/react-uploader/core.css";
 import { Toaster } from "react-hot-toast";
 import { db } from "@/lib/firebase";
 import {
@@ -57,6 +59,13 @@ function CreateStoreForm({ onSave, onCancel, saving, err }) {
             placeholder="https://example.com/logo.png"
             className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           />
+          <div className="mt-2">
+            <FileUploaderRegular
+              pubkey="33563ee22dfa473493de"
+              onFileUploadSuccess={(res) => setLogoUrl(res.cdnUrl)}
+              className="text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
+            />
+          </div>
         </div>
         {err && <p className="text-red-500 text-sm">{err}</p>}
         <div className="flex justify-end gap-3">

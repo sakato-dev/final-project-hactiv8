@@ -37,80 +37,80 @@ export default function RegisterAdmin() {
   };
 
   return (
-    <div className="flex h-screen bg-[url('/bg-landingpage.png')]">
-      {/* Sisi Kiri - Informasi Landing Page */}
-      <div className="absolute top-10 left-20">
-        <Image src="/logo.png" width={100} height={100} alt="PointJuaro" />
-      </div>
-      <div className="w-1/2 flex-col justify-center items-start p-20 relative hidden md:flex">
-        <h1 className="text-5xl font-bold text-white mb-20">
-          Discover the Perfect
-          <br />
-          Loyalty Program for You
-        </h1>
+    <div className="relative min-h-screen bg-[url('/bg-blue.png')] bg-cover bg-center">
+      <div className="absolute top-8 left-8 md:top-10 md:left-20">
+        <Image src="/logo.png" width={160} height={100} alt="PointJuaro" />
       </div>
 
-      {/* Sisi Kanan - Form Login */}
-      <div className="w-full md:w-1/2 flex justify-center items-center">
-        <div className="bg-[url('/bg-blue.png')] p-10 rounded-2xl shadow-lg w-full max-w-md relative">
-          <div className="text-center mb-8">
-            <div className="inline-block mb-4">
-              <Image
-                src="/logo.png"
-                width={100}
-                height={100}
-                alt="PointJuaro"
-              />
-            </div>
-          </div>
+      <div className="container mx-auto flex h-screen items-center px-6">
+        <div className="hidden md:flex md:w-1/2 flex-col justify-center pl-20">
+          <h1 className="text-5xl font-bold text-white leading-tight">
+            Discover the Perfect
+            <br />
+            Loyalty Program for You
+          </h1>
+        </div>
 
-          <form onSubmit={handleRegister}>
-            <div className="mb-4">
-              <input
-                type="email"
-                placeholder="Email Address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg  text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div className="mb-6  text-white">
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg  text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
+        <div className="w-full md:w-1/2 flex justify-center items-center">
+          <div className="bg-black/20 backdrop-blur-lg p-8 sm:p-10 rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white">Welcome Back</h2>
+              <p className="text-gray-300 mt-2">
+                Please enter your details to sign in.
+              </p>
             </div>
 
-            <button
-              type="submit"
-              className="w-full bg-[#1E293B] text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition duration-300"
-            >
-              Register as Admin
-            </button>
-          </form>
+            <form onSubmit={handleRegister} className="space-y-4">
+              <div>
+                <input
+                  type="email"
+                  placeholder="Email Address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
 
-          <p className="text-center text-sm text-white mt-6">
-            <Link href="/auth/login" className="p-2 text-white">
-              Sudah Punya Account? Login di sini!
-            </Link>
-          </p>
+              <button
+                type="submit"
+                className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300"
+              >
+                Register as Merchant
+              </button>
+            </form>
 
-          <p className="text-center text-sm text-white mt-6">
-            <Link href="/auth/register-customer" className="p-2 text-white">
-              Daftar sebagai Customer? Register di sini!
-            </Link>
-          </p>
+            <p className="text-center text-sm text-white mt-6">
+              <Link href="/auth/login" className="p-2 text-white">
+                Sudah Punya Account? Login di sini!
+              </Link>
+            </p>
 
-          <div className="flex items-center justify-center my-6 gap-2 text-sm text-white">
-            {" "}
-            Login Dengan
-            <button className="p-2 border border-gray-300 rounded-full hover:bg-gray-100 transition duration-300 text-xl">
+            <p className="text-center text-sm text-white mt-6">
+              <Link href="/auth/register-customer" className="p-2 text-white">
+                Daftar sebagai Customer? Register di sini!
+              </Link>
+            </p>
+
+            <div className="flex items-center my-6">
+              <hr className="flex-grow border-white/20" />
+              <span className="mx-4 text-gray-400 text-sm">OR</span>
+              <hr className="flex-grow border-white/20" />
+            </div>
+
+            <button className="w-full flex items-center justify-center gap-2 py-3 border border-white/20 rounded-lg hover:bg-white/10 transition duration-300 text-sm text-white">
               <FaGoogle />
+              Login Dengan Google
             </button>
           </div>
         </div>

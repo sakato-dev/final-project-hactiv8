@@ -370,7 +370,10 @@ function AdminHome() {
                                   {tx.amount.toLocaleString("id-ID")}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-bold">
-                                  +{tx.pointsAwarded}
+                                  +
+                                  {tx.pointsAwarded > 0
+                                    ? tx.pointsAwarded
+                                    : tx.stampsAwarded}
                                 </td>
                               </tr>
                             ))}

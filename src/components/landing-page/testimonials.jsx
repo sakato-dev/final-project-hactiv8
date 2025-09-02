@@ -24,14 +24,14 @@ export default function Testimonials() {
             <footer className="mt-6 flex items-center gap-x-4">
               <Image
                 className="h-10 w-10 rounded-full bg-gray-50"
-                src="/creditcard.png"
-                alt="Hadid Khan"
+                src="/student.jpg"
+                alt="Hani Amara"
                 width={40}
                 height={40}
               />
               <div>
-                <div className="font-semibold text-white">Hadid Khan</div>
-                <div className="text-gray-400 text-sm">UX/UI Designer</div>
+                <div className="font-semibold text-white">Hani Amara</div>
+                <div className="text-gray-400 text-sm">Student</div>
               </div>
             </footer>
           </blockquote>
@@ -45,14 +45,14 @@ export default function Testimonials() {
             <footer className="mt-6 flex items-center gap-x-4">
               <Image
                 className="h-10 w-10 rounded-full bg-gray-50"
-                src="/creditcard.png"
+                src="/traveler.jpg"
                 alt="Wade Warren"
                 width={40}
                 height={40}
               />
               <div>
                 <div className="font-semibold text-white">Wade Warren</div>
-                <div className="text-gray-400 text-sm">Web Designer</div>
+                <div className="text-gray-400 text-sm">Traveler</div>
               </div>
             </footer>
           </blockquote>
@@ -65,14 +65,14 @@ export default function Testimonials() {
             <footer className="mt-6 flex items-center gap-x-4">
               <Image
                 className="h-10 w-10 rounded-full bg-gray-50"
-                src="/creditcard.png"
+                src="/b.jpg"
                 alt="Jenny Wilson"
                 width={40}
                 height={40}
               />
               <div>
                 <div className="font-semibold text-white">Jenny Wilson</div>
-                <div className="text-gray-400 text-sm">Trust Administrator</div>
+                <div className="text-gray-400 text-sm">Professional</div>
               </div>
             </footer>
           </blockquote>

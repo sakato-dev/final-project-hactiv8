@@ -18,9 +18,8 @@ export default function Navbar() {
   ];
 
   return (
-    // Penambahan kelas untuk membuat navbar fixed
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-sm text-white">
-      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-lg text-white shadow-lg">
+      <div className="relative mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -53,8 +52,7 @@ export default function Navbar() {
           <div className="hidden md:block flex-shrink-0">
             <Link
               href="#"
-              className="inline-flex rounded-full border-2 border-blue-700 px-8 py-2 text-sm
-                         hover:bg-blue-700 hover:text-white transition text-white font-medium"
+              className="inline-flex rounded-full border-2 border-indigo-500 px-8 py-2 text-sm font-semibold shadow-md hover:bg-indigo-500 hover:text-white transition-all duration-200 text-white"
             >
               Contact
             </Link>
@@ -74,14 +72,14 @@ export default function Navbar() {
 
       {/* Panel Menu Mobile */}
       {isOpen && (
-        <div className="md:hidden bg-gray-900/80 backdrop-blur-md absolute w-full">
-          <ul className="flex flex-col items-center gap-6 py-8">
+        <div className="md:hidden bg-black/90 backdrop-blur-xl absolute w-full left-0 top-20 shadow-2xl border-b border-indigo-400/20 animate-fade-in-up">
+          <ul className="flex flex-col items-center gap-6 py-10">
             {navLinks.map((link) => (
               <li key={link.label}>
                 <Link
                   href={link.href}
-                  className="text-lg opacity-90 hover:opacity-100 transition"
-                  onClick={() => setIsOpen(false)} // Menutup menu setelah link diklik
+                  className="text-lg font-semibold opacity-90 hover:opacity-100 transition-colors duration-150"
+                  onClick={() => setIsOpen(false)}
                 >
                   {link.label}
                 </Link>
@@ -90,8 +88,7 @@ export default function Navbar() {
             <li>
               <Link
                 href="#"
-                className="mt-4 inline-flex rounded-full border-2 border-blue-700 px-8 py-2 text-base
-                           hover:bg-blue-700 hover:text-white transition text-white font-medium"
+                className="mt-4 inline-flex rounded-full border-2 border-indigo-500 px-8 py-2 text-base font-semibold shadow-md hover:bg-indigo-500 hover:text-white transition-all duration-200 text-white"
                 onClick={() => setIsOpen(false)}
               >
                 Contact

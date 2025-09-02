@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Swal from "sweetalert2";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
@@ -17,10 +18,44 @@ export default function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
+      if (!email || !password) {
+        Swal.fire({
+          icon: "warning",
+          title: "Missing Information",
+          text: "Please enter both email and password.",
+          confirmButtonColor: "#f59e42",
+        });
+        return;
+      }
       await signInWithEmailAndPassword(auth, email, password);
-      router.push("/admin");
+      Swal.fire({
+        icon: "success",
+        title: "Login Successful!",
+        text: "Welcome back! Redirecting to dashboard...",
+        confirmButtonColor: "#6366f1",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+      setTimeout(() => {
+        router.push("/admin");
+      }, 1200);
     } catch (error) {
       console.error("Error logging in:", error);
+      let errorMsg = "An error occurred during login.";
+      if (error.code === "auth/user-not-found") {
+        errorMsg =
+          "Account not found. Please check your email or register first.";
+      } else if (error.code === "auth/wrong-password") {
+        errorMsg = "Incorrect password. Please try again.";
+      } else if (error.code === "auth/invalid-email") {
+        errorMsg = "Invalid email address format.";
+      }
+      Swal.fire({
+        icon: "error",
+        title: "Login Failed",
+        text: errorMsg,
+        confirmButtonColor: "#ef4444",
+      });
     }
   };
 

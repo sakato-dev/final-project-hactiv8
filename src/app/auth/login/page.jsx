@@ -25,84 +25,84 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[url('/bg-landingpage.png')]">
+    <div className="flex h-screen bg-[url('/bg-landingpage.png')] bg-cover bg-center relative">
       {/* Sisi Kiri - Informasi Landing Page */}
-      <div className="absolute top-10 left-20">
+      <div className="absolute top-8 left-8 z-10">
         <Image
           src="/logo.png"
-          width={100}
-          height={100}
+          width={80}
+          height={80}
           alt="PointJuaro"
-          className="w-40"
+          className="w-32 drop-shadow-lg"
         />
       </div>
       <div className="w-1/2 flex-col justify-center items-start p-20 relative hidden md:flex">
-        <h1 className="text-5xl font-bold text-white mb-20">
+        <h1 className="text-5xl font-extrabold text-white mb-16 drop-shadow-xl leading-tight">
           Discover the Perfect
           <br />
-          Loyalty Program for You
+          <span className="text-indigo-300">Loyalty Program</span> for You
         </h1>
+        <p className="text-lg text-indigo-100 max-w-md">
+          Unlock exclusive rewards and seamless transactions with our digital membercard platform.
+        </p>
       </div>
 
       {/* Sisi Kanan - Form Login */}
-      <div className="w-full md:w-1/2 flex justify-center items-center">
-        <div className="bg-[url('/bg-blue.png')] p-10 rounded-2xl shadow-lg w-full max-w-md relative">
+      <div className="w-full md:w-1/2 flex justify-center items-center min-h-screen">
+        <div className="bg-white/10 backdrop-blur-xl p-10 rounded-3xl shadow-2xl w-full max-w-md relative border border-white/20">
           <div className="text-center mb-8">
             <div className="inline-block mb-4">
               <Image
                 src="/logo.png"
-                width={100}
-                height={100}
+                width={80}
+                height={80}
                 alt="PointJuaro"
-                className="w-35"
+                className="w-24 drop-shadow-md"
               />
             </div>
+            <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Sign in to your account</h2>
+            <p className="text-indigo-100 text-sm">Welcome back! Please enter your details.</p>
           </div>
 
-          <form onSubmit={handleLogin}>
-            <div className="mb-4">
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
               <input
                 type="email"
                 placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg  text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-indigo-300 bg-white/20 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 placeholder:text-indigo-200"
                 required
               />
             </div>
-            <div className="mb-6  text-white">
+            <div>
               <input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg  text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-indigo-300 bg-white/20 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 placeholder:text-indigo-200"
                 required
               />
             </div>
-
             <button
               type="submit"
-              className="w-full bg-[#1E293B] text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition duration-300"
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold shadow-md hover:bg-indigo-700 transition duration-200"
             >
               Log In
             </button>
           </form>
 
-          <p className="text-center text-sm text-white mt-6">
-            <Link href="/auth/register-customer" className="p-2 text-white">
-              Belum Punya Account? register di sini!
+          <div className="flex items-center justify-between mt-6">
+            <Link href="/auth/register-customer" className="text-indigo-200 hover:underline text-sm">
+              Belum punya akun? Daftar di sini
             </Link>
-          </p>
+            <span className="text-indigo-200 text-sm cursor-pointer hover:underline">Lupa kata sandi?</span>
+          </div>
 
-          <p className="text-center text-sm text-white mt-6">
-            Lupa kata sandi Anda?
-          </p>
-
-          <div className="flex items-center justify-center my-6 gap-2 text-sm text-white">
-            {" "}
-            Login Dengan
-            <button className="p-2 border border-gray-300 rounded-full hover:bg-gray-100 transition duration-300 text-xl">
+          <div className="flex items-center justify-center my-6 gap-2 text-sm text-indigo-100">
+            <span className="mr-2">Atau login dengan</span>
+            <button className="p-2 border border-indigo-300 rounded-full bg-white/10 hover:bg-indigo-100 hover:text-indigo-700 transition duration-200 text-xl">
               <FaGoogle />
             </button>
           </div>

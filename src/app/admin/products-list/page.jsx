@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import formatRupiah from "@/utils/FormatRupiah";
 import { useAuth } from "@/contexts/auth-context";
 import Swal from "sweetalert2";
-import { FiSearch, FiChevronDown, FiPlus } from "react-icons/fi";
+import { FiSearch, FiPlus } from "react-icons/fi";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
 export default function Page() {
@@ -159,19 +159,19 @@ export default function Page() {
 
       {/* Table */}
       <div className="mt-6 bg-white rounded-xl shadow-sm overflow-x-auto">
-        <table className="w-full text-md text-left text-gray-500">
+        <table className="w-full table-fixed text-md text-left text-gray-500">
           <thead className="text-md text-gray-800 uppercase bg-gray-100">
             <tr>
-              <th scope="col" className="px-6 py-3">
+              <th scope="col" className="w-4/7 px-12 py-3">
                 Product
               </th>
-              <th scope="col" className="px-6 py-3">
+              <th scope="col" className="w-1/7 px-4 py-3">
                 Category
               </th>
-              <th scope="col" className="px-6 py-3">
+              <th scope="col" className="w-1/7 px-4 py-3">
                 Price
               </th>
-              <th scope="col" className="px-6 py-3 text-center">
+              <th scope="col" className="w-1/7 px-4 py-3 text-center">
                 Actions
               </th>
             </tr>
@@ -195,29 +195,40 @@ export default function Page() {
             ) : (
               filteredProducts.map((item) => (
                 <tr key={item.id} className="bg-white border-b border-gray-200">
-                  <th
-                    scope="row"
-                    className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap"
-                  >
+                  {/* Product Column */}
+                  <td className="px-6 py-6 font-medium text-gray-900">
                     <div className="flex items-center gap-4">
                       <img
                         src={item.imgUrl}
                         alt={item.name}
-                        className="w-25 h-25 object-cover rounded-md"
+                        className="w-20 h-20 object-cover rounded-md"
                       />
-                      <div>
-                        <div className="font-bold capitalize">{item.name}</div>
-                        <div className="text-sm font-normal text-gray-500">
+                      <div className="min-w-0">
+                        <div className="font-bold capitalize truncate">
+                          {item.name}
+                        </div>
+                        <div className="text-sm font-normal text-gray-500 line-clamp-2">
                           {item.description}
                         </div>
                       </div>
                     </div>
-                  </th>
-                  <td className="px-6 py-4 capitalize">{item.category}</td>
-                  <td className="px-6 py-4">
+                  </td>
+
+                  {/* Category */}
+                  <td
+                    className="px-4 py-4 capitalize truncate"
+                    title={item.category}
+                  >
+                    {item.category}
+                  </td>
+
+                  {/* Price */}
+                  <td className="px-4 py-4">
                     {item.price ? formatRupiah(item.price) : "Rp 0"}
                   </td>
-                  <td className="px-6 py-4">
+
+                  {/* Actions */}
+                  <td className="px-4 py-4">
                     <div className="flex items-center justify-center gap-3">
                       <button
                         onClick={() => handleEdit(item.id)}

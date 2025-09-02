@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Swal from "sweetalert2";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -30,87 +31,117 @@ export default function RegisterAdmin() {
         uid: user.uid,
       });
 
-      router.push("/admin");
+      Swal.fire({
+        icon: "success",
+        title: "Registration Successful!",
+        text: "Your admin account has been created. Please login.",
+        confirmButtonColor: "#6366f1",
+      }).then(() => {
+        router.push("/auth/login");
+      });
     } catch (error) {
       console.error("Error registering:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Registration Failed",
+        text: error.message || "An error occurred during registration.",
+        confirmButtonColor: "#ef4444",
+      });
     }
   };
 
   return (
-    <div className="flex h-screen bg-[url('/bg-landingpage.png')]">
+    <div className="flex h-screen bg-[url('/bg-landingpage.png')] bg-cover bg-center relative">
       {/* Sisi Kiri - Informasi Landing Page */}
-      <div className="absolute top-10 left-20">
-        <Image src="/logo.png" width={100} height={100} alt="PointJuaro" />
-      </div>
       <div className="w-1/2 flex-col justify-center items-start p-20 relative hidden md:flex">
-        <h1 className="text-5xl font-bold text-white mb-20">
+        <Image
+          src="/logo.png"
+          width={80}
+          height={80}
+          alt="PointJuaro"
+          className="w-34 drop-shadow-lg mb-8"
+        />
+        <h1 className="text-5xl font-extrabold text-white mb-16 drop-shadow-xl leading-tight">
           Discover the Perfect
           <br />
-          Loyalty Program for You
+          <span className="text-indigo-300">Loyalty Program</span> for You
         </h1>
+        <p className="text-lg text-indigo-100 max-w-md">
+          Unlock exclusive rewards and seamless transactions with our digital
+          membercard platform.
+        </p>
       </div>
 
-      {/* Sisi Kanan - Form Login */}
-      <div className="w-full md:w-1/2 flex justify-center items-center">
-        <div className="bg-[url('/bg-blue.png')] p-10 rounded-2xl shadow-lg w-full max-w-md relative">
+      {/* Sisi Kanan - Form Register */}
+      <div className="w-full md:w-1/2 flex justify-center items-center min-h-screen">
+        <div className="bg-white/10 backdrop-blur-xl p-10 rounded-3xl shadow-2xl w-full max-w-md relative border border-white/20">
           <div className="text-center mb-8">
             <div className="inline-block mb-4">
               <Image
                 src="/logo.png"
-                width={100}
-                height={100}
+                width={80}
+                height={80}
                 alt="PointJuaro"
+                className="w-32 drop-shadow-md"
               />
             </div>
+            <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">
+              Register as Admin
+            </h2>
+            <p className="text-indigo-100 text-sm">
+              Create your admin account to get started.
+            </p>
           </div>
 
-          <form onSubmit={handleRegister}>
-            <div className="mb-4">
+          <form onSubmit={handleRegister} className="space-y-5">
+            <div>
               <input
                 type="email"
                 placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg  text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-indigo-300 bg-white/20 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 placeholder:text-indigo-200"
                 required
               />
             </div>
-            <div className="mb-6  text-white">
+            <div>
               <input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg  text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-indigo-300 bg-white/20 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 placeholder:text-indigo-200"
                 required
               />
             </div>
-
             <button
               type="submit"
-              className="w-full bg-[#1E293B] text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition duration-300"
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold shadow-md hover:bg-indigo-700 transition duration-200"
             >
               Register as Admin
             </button>
           </form>
 
-          <p className="text-center text-sm text-white mt-6">
-            <Link href="/auth/login" className="p-2 text-white">
-              Sudah Punya Account? Login di sini!
+          <div className="flex items-center justify-between mt-6">
+            <Link
+              href="/auth/login"
+              className="text-indigo-200 hover:underline text-sm"
+            >
+              Sudah punya akun? Login di sini
             </Link>
-          </p>
-
-          <p className="text-center text-sm text-white mt-6">
-            <Link href="/auth/register-customer" className="p-2 text-white">
-              Daftar sebagai Customer? Register di sini!
+            <Link
+              href="/auth/register-customer"
+              className="text-indigo-200 hover:underline text-sm"
+            >
+              Daftar sebagai Customer
             </Link>
-          </p>
+          </div>
 
-          <div className="flex items-center justify-center my-6 gap-2 text-sm text-white">
-            {" "}
-            Login Dengan
-            <button className="p-2 border border-gray-300 rounded-full hover:bg-gray-100 transition duration-300 text-xl">
+          <div className="flex items-center justify-center my-6 gap-2 text-sm text-indigo-100">
+            <span className="mr-2">Atau daftar dengan</span>
+            <button className="p-2 border border-indigo-300 rounded-full bg-white/10 hover:bg-indigo-100 hover:text-indigo-700 transition duration-200 text-xl">
               <FaGoogle />
+              Login Dengan Google
             </button>
           </div>
         </div>

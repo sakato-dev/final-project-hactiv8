@@ -11,7 +11,7 @@ import {
   where,
 } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, use } from "react";
 import Swal from "sweetalert2";
 
 export default function StaffPage() {
@@ -29,6 +29,8 @@ export default function StaffPage() {
       setMerchantId(userProfile.merchantId);
     }
   }, [userProfile]);
+
+  console.log(userProfile, "userProfile");
 
   useEffect(() => {
     if (!userProfile?.merchantId) {

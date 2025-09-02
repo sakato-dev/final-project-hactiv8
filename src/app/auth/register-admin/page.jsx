@@ -39,7 +39,7 @@ export default function RegisterAdmin() {
   return (
     <div className="flex h-screen bg-[url('/bg-landingpage.png')] bg-cover bg-center relative">
       {/* Sisi Kiri - Informasi Landing Page */}
-      <div className="w-1/2 flex flex-col justify-center items-start p-20 relative hidden md:flex">
+      <div className="w-1/2 flex-col justify-center items-start p-20 relative hidden md:flex">
         <Image
           src="/logo.png"
           width={80}

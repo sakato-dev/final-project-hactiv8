@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Swal from "sweetalert2";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -30,16 +31,29 @@ export default function RegisterAdmin() {
         uid: user.uid,
       });
 
-      router.push("/admin");
+      Swal.fire({
+        icon: "success",
+        title: "Registration Successful!",
+        text: "Your account has been created. Please login.",
+        confirmButtonColor: "#6366f1",
+      }).then(() => {
+        router.push("/auth/login");
+      });
     } catch (error) {
       console.error("Error registering:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Registration Failed",
+        text: error.message || "An error occurred during registration.",
+        confirmButtonColor: "#ef4444",
+      });
     }
   };
 
   return (
     <div className="flex h-screen bg-[url('/bg-landingpage.png')] bg-cover bg-center relative">
       {/* Sisi Kiri - Informasi Landing Page */}
-      <div className="w-1/2 flex flex-col justify-center items-start p-20 relative hidden md:flex">
+      <div className="w-1/2 flex-col justify-center items-start p-20 relative hidden md:flex">
         <Image
           src="/logo.png"
           width={100}

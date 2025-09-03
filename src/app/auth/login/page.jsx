@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { getDoc, doc, setDoc } from "firebase/firestore";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { db } from "@/lib/firebase";
 import Swal from "sweetalert2";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -14,6 +17,80 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   const router = useRouter();
+
+  const handleGoogleLogin = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      // cek apakah user sudah teregister di Firestore
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        Swal.fire({
+          icon: "success",
+          title: "Login Successful!",
+          text: "Welcome back! Redirecting to dashboard...",
+          confirmButtonColor: "#6366f1",
+          timer: 1200,
+          showConfirmButton: false,
+        });
+        setTimeout(() => {
+          router.push("/admin");
+        }, 1200);
+      } else {
+        // belum teregister, tampilkan pilihan dan langsung eksekusi setDoc
+        Swal.fire({
+          title: "Akun belum teregister",
+          text: "Silakan pilih tipe akun untuk registrasi.",
+          icon: "info",
+          showCancelButton: true,
+          confirmButtonText: "Register Customer",
+          cancelButtonText: "Register Admin",
+          confirmButtonColor: "#6366f1",
+          cancelButtonColor: "#f59e42",
+        }).then(async (result) => {
+          let role = "customer";
+          if (result.dismiss === Swal.DismissReason.cancel) {
+            role = "admin";
+          }
+          try {
+            await setDoc(userDocRef, {
+              email: user.email,
+              role,
+              uid: user.uid,
+            });
+            Swal.fire({
+              icon: "success",
+              title: "Registrasi Berhasil!",
+              text: `Akun ${role} berhasil dibuat. Redirecting to dashboard...`,
+              confirmButtonColor: "#6366f1",
+              timer: 1200,
+              showConfirmButton: false,
+            });
+            setTimeout(() => {
+              router.push("/admin");
+            }, 1200);
+          } catch (err) {
+            Swal.fire({
+              icon: "error",
+              title: "Registrasi Gagal",
+              text: err.message || "Terjadi kesalahan saat registrasi.",
+              confirmButtonColor: "#ef4444",
+            });
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Google login error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Login Google Gagal",
+        text: error.message || "Terjadi kesalahan saat login Google.",
+        confirmButtonColor: "#ef4444",
+      });
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -37,7 +114,7 @@ export default function LoginPage() {
         showConfirmButton: false,
       });
       setTimeout(() => {
-        router.push("/admin");
+        router.push("/validation");
       }, 1200);
     } catch (error) {
       console.error("Error logging in:", error);
@@ -129,7 +206,11 @@ export default function LoginPage() {
               <hr className="flex-grow border-white/20" />
             </div>
 
-            <button className="w-full flex items-center justify-center gap-2 py-3 border border-white/20 rounded-lg hover:bg-white/10 transition duration-300 text-sm text-white">
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-2 py-3 border border-white/20 rounded-lg hover:bg-white/10 transition duration-300 text-sm text-white"
+              onClick={handleGoogleLogin}
+            >
               <FaGoogle />
               Login Dengan Google
             </button>

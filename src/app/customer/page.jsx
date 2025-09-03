@@ -15,6 +15,8 @@ import Link from "next/link";
 import { FaBell, FaUser } from "react-icons/fa";
 import { QRCodeSVG } from "qrcode.react";
 import CustomerTabs from "@/components/customer/customer-tabs";
+import { useRef } from "react";
+import { useRouter } from "next/navigation";
 
 export default function CustomerHome() {
   const { userProfile } = useAuth();
@@ -26,6 +28,9 @@ export default function CustomerHome() {
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
   const minSwipeDistance = 50;
+  const scrollRef = useRef(null);
+  const [openTxIds, setOpenTxIds] = useState(new Set());
+  const router = useRouter();
 
   useEffect(() => {
     if (!userProfile?.uid) {
@@ -101,6 +106,14 @@ export default function CustomerHome() {
     );
   };
 
+  const toggleTx = (id) => {
+    setOpenTxIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -112,18 +125,40 @@ export default function CustomerHome() {
   const currentMembership = memberships[currentCardIndex];
   const isStampMode = currentMembership?.promotionSettings?.type === "stamp";
 
+  const scrollToCard = (index) => {
+    if (scrollRef.current) {
+      const card = scrollRef.current.children[index];
+      if (card) {
+        card.scrollIntoView({ behavior: "smooth", inline: "center" });
+      }
+    }
+  };
+
+  const onScroll = (e) => {
+    const scrollLeft = e.target.scrollLeft;
+    const cardWidth = e.target.children[0]?.offsetWidth || 1;
+    const index = Math.round(scrollLeft / cardWidth);
+    setCurrentCardIndex(index);
+  };
+
   return (
     <>
-      <div className="flex justify-between items-center p-4">
-        <img src="/logo.png" alt="Point Juaro" />
-        <div className="flex items-center space-x-4">
-          <FaBell className="w-8 h-8 bg-gray-600 rounded-full p-2" />
-          <Link
-            href="/customer/profile"
-            className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center"
+      <div className="flex justify-between items-center p-4 w-full max-w-full">
+        <div className="min-w-0 flex-1 flex items-center">
+          <img
+            src="/logo.png"
+            alt="Point Juaro"
+            className="h-8 w-auto max-w-full"
+          />
+        </div>
+        <div className="flex items-center space-x-4 flex-shrink-0">
+          <button
+            className="bg-white w-9 h-9 rounded-full flex items-center justify-center shadow"
+            aria-label="Notifications"
+            onClick={() => router.push("/customer/notifications")}
           >
-            <FaUser />
-          </Link>
+            <FaBell className="text-[#0f172a] w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -133,54 +168,75 @@ export default function CustomerHome() {
 
       <div className="px-4">
         {memberships.length > 0 ? (
-          <div
-            className="mb-8"
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-          >
-            <div className="bg-gradient-to-br from-green-400 to-blue-500 p-6 rounded-2xl shadow-lg relative overflow-hidden">
-              <div className="relative z-10">
-                <div className="flex justify-between items-start mb-8">
-                  <h3 className="text-2xl font-medium">
-                    {currentMembership?.merchantName || "Toko"}
-                  </h3>
-                  <p className="opacity-80 text-xl capitalize">
-                    {isStampMode ? "Stamps" : "Points"}
-                  </p>
-                </div>
-                <div className="mb-8">
-                  <span className="text-white font-bold text-3xl">
-                    {isStampMode
-                      ? `${currentMembership?.stamps || 0} / ${
-                          currentMembership?.promotionSettings
-                            ?.stampThreshold || 10
-                        }`
-                      : currentMembership?.points || 0}
-                  </span>
-                  <span className="text-white ml-2">
-                    {isStampMode ? "Stempel" : "Poin"}
-                  </span>
-                </div>
-                <div className="flex justify-between items-end">
-                  <div>
-                    <p className="text-xs opacity-80 mb-1">Nama Member</p>
-                    <p className="font-semibold">{userProfile?.email}</p>
+          <div className="mb-8">
+            <div
+              ref={scrollRef}
+              className="flex overflow-x-auto space-x-4 pb-4 snap-x snap-mandatory hide-scrollbar"
+              style={{ scrollBehavior: "smooth" }}
+              onScroll={onScroll}
+            >
+              {memberships.map((membership, idx) => {
+                const isStampMode =
+                  membership?.promotionSettings?.type === "stamp";
+                return (
+                  <div
+                    key={membership.id}
+                    className="min-w-[440px] max-w-[480px] snap-center bg-gradient-to-br from-green-400 to-blue-500 p-0 rounded-2xl shadow-lg relative overflow-hidden flex flex-col justify-between"
+                    style={{
+                      borderRadius: "20px",
+                      boxShadow: "0 6px 24px rgba(0,0,0,0.15)",
+                    }}
+                  >
+                    <div className="relative z-10 p-8 pb-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="text-xl font-bold text-white">
+                          {membership?.merchantName || "Toko Bangunan"}
+                        </h3>
+                        <p className="text-sm text-white font-semibold opacity-80 mt-1">
+                          {isStampMode ? "Stamps" : "Points"}
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 items-center">
+                        <div>
+                          <span className="text-white font-bold text-5xl leading-none">
+                            {isStampMode
+                              ? `${membership?.stamps || 0} / ${
+                                  membership?.promotionSettings
+                                    ?.stampThreshold || 10
+                                }`
+                              : membership?.points || 0}
+                          </span>
+                          <div className="text-white text-base font-medium mt-2">
+                            {isStampMode ? "Stempel" : "Poin"}
+                          </div>
+                          <div className="mt-8">
+                            <p className="text-sm text-white opacity-80 mb-1">
+                              Nama Member
+                            </p>
+                            <p className="text-white font-semibold">
+                              {userProfile?.displayName || "Customer 1"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex justify-end items-center">
+                          <div className="bg-white p-3 rounded-lg shadow">
+                            {userProfile?.uid && (
+                              <QRCodeSVG value={userProfile.uid} size={90} />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="bg-white p-2 rounded">
-                    {userProfile?.uid && (
-                      <QRCodeSVG value={userProfile.uid} size={80} />
-                    )}
-                  </div>
-                </div>
-              </div>
+                );
+              })}
             </div>
             {memberships.length > 1 && (
-              <div className="flex justify-center mt-4 space-x-2">
+              <div className="flex justify-center mt-2 space-x-2">
                 {memberships.map((_, index) => (
                   <button
                     key={index}
-                    onClick={() => setCurrentCardIndex(index)}
+                    onClick={() => scrollToCard(index)}
                     className={`w-2 h-2 rounded-full transition-colors ${
                       index === currentCardIndex ? "bg-white" : "bg-gray-600"
                     }`}
@@ -202,44 +258,102 @@ export default function CustomerHome() {
             <h2 className="text-xl font-bold mb-4">
               Riwayat Transaksi di {currentMembership.merchantName}
             </h2>
-            <div className="bg-gray-800 rounded-lg p-4 space-y-3">
+            <div>
               {getCurrentCardTransactions().length > 0 ? (
                 getCurrentCardTransactions()
                   .slice(0, 5)
-                  .map((tx) => (
-                    <div
-                      key={tx.id}
-                      className="flex justify-between items-center border-b border-gray-700 pb-2 last:border-b-0"
-                    >
-                      <div>
-                        <p className="font-medium">
-                          {tx.createdAt
-                            ? new Date(
-                                tx.createdAt.seconds * 1000
-                              ).toLocaleDateString("id-ID", {
-                                day: "2-digit",
-                                month: "long",
-                                year: "numeric",
-                              })
-                            : "Baru saja"}
-                        </p>
-                        <p className="text-sm text-gray-400">
-                          Rp {tx.amount.toLocaleString("id-ID")}
-                        </p>
-                      </div>
+                  .map((tx) => {
+                    const isOpen = openTxIds.has(tx.id);
+                    const items = Array.isArray(tx.items) ? tx.items : [];
+                    return (
                       <div
-                        className={`font-semibold ${
-                          isStampMode ? "text-blue-400" : "text-green-400"
-                        }`}
+                        key={tx.id}
+                        className="bg-[#121a2d] rounded-xl mb-4 overflow-hidden"
                       >
-                        {isStampMode
-                          ? "+1 Stempel"
-                          : `+${tx.pointsAwarded} Poin`}
+                        <button
+                          className="w-full flex items-center px-6 py-4 focus:outline-none"
+                          onClick={() => toggleTx(tx.id)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <div className="flex-1">
+                            <p className="font-bold text-white text-base mb-1">
+                              {tx.createdAt
+                                ? new Date(
+                                    tx.createdAt.seconds * 1000
+                                  ).toLocaleDateString("id-ID", {
+                                    day: "2-digit",
+                                    month: "long",
+                                    year: "numeric",
+                                  })
+                                : "Baru saja"}
+                            </p>
+                            <p className="text-gray-400 text-sm">
+                              Rp {tx.amount.toLocaleString("id-ID")}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="font-bold text-base text-green-400">
+                              {isStampMode
+                                ? `+${tx.stampsAwarded || 1} Stempel`
+                                : `+${tx.pointsAwarded} Poin`}
+                            </span>
+                            <span
+                              className={`transition-transform duration-200 ${
+                                isOpen ? "rotate-180" : ""
+                              }`}
+                            >
+                              <svg
+                                width="18"
+                                height="18"
+                                fill="#94a3b8"
+                                viewBox="0 0 24 24"
+                              >
+                                <path d="M7 10l5 5 5-5" />
+                              </svg>
+                            </span>
+                          </div>
+                        </button>
+                        {isOpen && (
+                          <div className="px-6 pb-4 border-t border-[#1f2937] animate-fadein">
+                            {items.length === 0 ? (
+                              <p className="text-gray-400 pt-2">
+                                Tidak ada detail item.
+                              </p>
+                            ) : (
+                              <>
+                                {items.map((item, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="flex justify-between items-center pt-2"
+                                  >
+                                    <span className="text-gray-200">
+                                      {item.name || item.title || "Item"}
+                                    </span>
+                                    <span className="text-gray-400">
+                                      {item.qty || item.quantity || 1} × Rp{" "}
+                                      {(
+                                        item.price ||
+                                        item.unitPrice ||
+                                        0
+                                      ).toLocaleString("id-ID")}
+                                    </span>
+                                  </div>
+                                ))}
+                                <div className="border-t border-[#1f2937] mt-2 pt-2 flex justify-between items-center font-bold">
+                                  <span className="text-gray-100">Total</span>
+                                  <span className="text-gray-100">
+                                    Rp {tx.amount.toLocaleString("id-ID")}
+                                  </span>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
               ) : (
-                <p className="text-sm text-gray-400 text-center py-4">
+                <p className="text-sm text-gray-400 text-center py-4 bg-[#121a2d] rounded-xl">
                   Belum ada transaksi di toko ini.
                 </p>
               )}

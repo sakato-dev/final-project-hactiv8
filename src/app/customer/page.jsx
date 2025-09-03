@@ -153,7 +153,7 @@ export default function CustomerHome() {
         </div>
         <div className="flex items-center space-x-4 flex-shrink-0">
           <button
-            className="bg-white w-9 h-9 rounded-full flex items-center justify-center shadow"
+            className="bg-white w-9 h-9 rounded-full flex items-center justify-center shadow cursor-pointer"
             aria-label="Notifications"
             onClick={() => router.push("/customer/notifications")}
           >
@@ -276,7 +276,7 @@ export default function CustomerHome() {
                           style={{ cursor: "pointer" }}
                         >
                           <div className="flex-1">
-                            <p className="font-bold text-white text-base mb-1">
+                            <p className="font-bold text-white text-base mb-1 text-left">
                               {tx.createdAt
                                 ? new Date(
                                     tx.createdAt.seconds * 1000
@@ -287,7 +287,7 @@ export default function CustomerHome() {
                                   })
                                 : "Baru saja"}
                             </p>
-                            <p className="text-gray-400 text-sm">
+                            <p className="text-gray-400 text-sm text-left">
                               Rp {tx.amount.toLocaleString("id-ID")}
                             </p>
                           </div>

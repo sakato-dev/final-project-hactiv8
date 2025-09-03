@@ -36,12 +36,13 @@ export default function MerchantProductsPage() {
   }, [merchantId]);
 
   const handleAddToCart = (product) => {
-    addToCart(product, merchantId);
+    const newProduct = { ...product, merchantName: merchant.name };
+    addToCart(newProduct, merchantId);
     Swal.fire({
       toast: true,
       position: "top-end",
       icon: "success",
-      title: `${product.name} ditambahkan`,
+      title: `${newProduct.name} ditambahkan`,
       showConfirmButton: false,
       timer: 1500,
       background: "#333",

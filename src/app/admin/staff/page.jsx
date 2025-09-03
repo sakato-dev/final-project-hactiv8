@@ -90,8 +90,12 @@ export default function StaffPage() {
           uid: user.uid,
           merchantId: merchantId,
         });
-
-        alert(`Kasir ${cashierEmail} berhasil didaftarkan!`);
+        Swal.fire({
+          title: "Berhasil",
+          text: `Kasir ${cashierEmail} berhasil didaftarkan!`,
+          icon: "success",
+          confirmButtonText: "OK",
+        });
         setCashierEmail("");
         setCashierPassword("");
       } catch (error) {

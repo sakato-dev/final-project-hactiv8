@@ -140,9 +140,9 @@ export default function RegisterCustomer() {
 
           <div className="flex items-center justify-center my-6 gap-2 text-sm text-indigo-100">
             <span className="mr-2">Atau daftar dengan</span>
-            <button className="p-2 border border-indigo-300 rounded-full bg-white/10 hover:bg-indigo-100 hover:text-indigo-700 transition duration-200 text-xl">
+            <button className="p-2 border flex items-center gap-2 border-indigo-300 rounded-full bg-white/10 hover:bg-indigo-100 hover:text-indigo-700 transition duration-200 text-lg">
               <FaGoogle />
-              Login Dengan Google
+              Register Google
             </button>
           </div>
         </div>

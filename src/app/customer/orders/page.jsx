@@ -11,6 +11,7 @@ export default function OrdersPage() {
   const { userProfile } = useAuth();
   const [pendingOrders, setPendingOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  console.log(pendingOrders);
 
   useEffect(() => {
     if (!userProfile?.uid) return;
@@ -50,9 +51,9 @@ export default function OrdersPage() {
               className="block bg-gray-800 p-4 rounded-lg hover:bg-gray-700 transition"
             >
               <div className="flex justify-between items-center">
-                <div>
+                <div className="space-y-2">
                   <p className="font-semibold">
-                    Pesanan #{order.id.substring(0, 6)}...
+                    Pesanan di {order.items[0].merchantName}
                   </p>
                   <p className="font-semibold">
                     Pesanan #{order.id.substring(0, 6)}...

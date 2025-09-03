@@ -6,6 +6,7 @@ import { collection, serverTimestamp, addDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import formatRupiah from "@/utils/FormatRupiah";
 import Swal from "sweetalert2";
+import { FaTrash, FaMinusCircle, FaPlusCircle } from "react-icons/fa";
 
 export default function CustomerCartPage() {
   const { cartItems, updateQuantity, removeFromCart, clearCart } = useCart();
@@ -50,68 +51,84 @@ export default function CustomerCartPage() {
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-6">Keranjang Saya</h1>
-      {cartItems.length > 0 ? (
-        <div>
-          <div className="space-y-3">
+    <div className="min-h-screen bg-[#0b1222] flex flex-col pb-24">
+      <h1 className="text-2xl font-bold text-white text-center mt-6 mb-6">
+        Cart
+      </h1>
+      <div className="flex-1 px-4">
+        {cartItems.length > 0 ? (
+          <div className="flex flex-col gap-3">
             {cartItems.map((item) => (
               <div
                 key={item.id}
-                className="flex gap-4 bg-gray-800 p-3 rounded-lg items-center"
+                className="flex items-center bg-[#1e293b] rounded-lg p-3 mb-2"
               >
                 <img
                   src={item.imgUrl || "https://via.placeholder.com/150"}
                   alt={item.name}
-                  className="w-20 h-20 rounded-md object-cover"
+                  className="w-15 h-15 min-w-[60px] min-h-[60px] rounded-lg object-cover mr-4"
+                  style={{ width: 60, height: 60 }}
                 />
-                <div className="flex-grow">
-                  <p>{item.name}</p>
-                  <p className="text-sm font-semibold">
+                <div className="flex-1">
+                  <p className="text-white font-semibold text-base">
+                    {item.name}
+                  </p>
+                  <p className="text-[#94a3b8] mt-1">
                     {formatRupiah(item.price)}
                   </p>
-                  <div className="flex items-center gap-4 mt-2">
+                  <div className="flex items-center gap-2 mt-2">
                     <button
                       onClick={() => updateQuantity(item.id, "decrease")}
-                      className="font-bold text-lg w-6 h-6 bg-gray-700 rounded"
+                      className="text-white"
+                      aria-label="Kurangi"
                     >
-                      -
+                      <FaMinusCircle size={22} />
                     </button>
-                    <span>{item.quantity}</span>
+                    <span className="text-white font-semibold mx-2">
+                      {item.quantity}
+                    </span>
                     <button
                       onClick={() => updateQuantity(item.id, "increase")}
-                      className="font-bold text-lg w-6 h-6 bg-gray-700 rounded"
+                      className="text-white"
+                      aria-label="Tambah"
                     >
-                      +
+                      <FaPlusCircle size={22} />
                     </button>
                   </div>
                 </div>
                 <button
                   onClick={() => removeFromCart(item.id)}
-                  className="text-red-500 text-xs"
+                  className="ml-4 text-[#fca5a5]"
+                  aria-label="Hapus"
                 >
-                  Hapus
+                  <FaTrash size={22} />
                 </button>
               </div>
             ))}
           </div>
-          <div className="mt-8 p-4 bg-gray-700 rounded-lg">
-            <div className="flex justify-between text-lg">
-              <span>Total</span>
-              <span className="font-bold">{formatRupiah(subTotal)}</span>
+        ) : (
+          <p className="text-center text-[#94a3b8] py-10">
+            Keranjang Anda kosong.
+          </p>
+        )}
+      </div>
+      {cartItems.length > 0 && (
+        <div className="fixed bottom-16 left-0 right-0 max-w-lg mx-auto px-4">
+          <div className="bg-[#0b1222] border-t border-[#334155] pt-4 pb-2 flex flex-col gap-3">
+            <div className="flex justify-between items-center text-lg mb-3 px-2">
+              <span className="text-white font-semibold">Total:</span>
+              <span className="text-white font-bold text-xl">
+                {formatRupiah(subTotal)}
+              </span>
             </div>
             <button
               onClick={handlePreparePayment}
-              className="w-full bg-green-600 text-white mt-4 py-3 rounded-lg font-semibold"
+              className="w-full bg-[#22c55e] text-white py-4 rounded-lg font-bold text-lg shadow mb-2"
             >
               Siapkan QR untuk Pembayaran
             </button>
           </div>
         </div>
-      ) : (
-        <p className="text-center text-gray-400 py-10">
-          Keranjang Anda kosong.
-        </p>
       )}
     </div>
   );

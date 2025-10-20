@@ -17,11 +17,12 @@ export function AuthProvider({ children }) {
   const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
+    let unsubscribeSnapshot = null;
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
         setCurrentUser(user);
         const userDocRef = doc(db, "users", user.uid);
-        const unsubscribeSnapshot = onSnapshot(
+        unsubscribeSnapshot = onSnapshot(
           userDocRef,
           (doc) => {
             if (doc.exists()) {
@@ -38,16 +39,23 @@ export function AuthProvider({ children }) {
             setLoading(false);
           }
         );
-
-        return () => unsubscribeSnapshot();
       } else {
         setCurrentUser(null);
         setUserProfile(null);
         setLoading(false);
+        if (unsubscribeSnapshot) {
+          unsubscribeSnapshot();
+          unsubscribeSnapshot = null;
+        }
       }
     });
 
-    return () => unsubscribeAuth();
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+      }
+    };
   }, []);
 
   const value = {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import Swal from "sweetalert2";
@@ -14,6 +14,7 @@ import {
 } from "react-icons/fa";
 import { CartProvider, useCart } from "@/contexts/CartContext";
 import { auth } from "@/lib/firebase";
+import { useAuth } from "@/contexts/auth-context";
 
 // Helper function to format date and time (moved outside the component)
 const formatDateTime = (date) => {
@@ -42,6 +43,7 @@ function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { cartCount } = useCart();
+  const { userProfile } = useAuth();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -128,6 +130,16 @@ function Navbar() {
                   </div>
                 </Link>
               ))}
+              {/* Button to Admin page if user is admin */}
+              {userProfile?.role === "admin" && (
+                <button
+                  type="button"
+                  onClick={() => router.push("/admin")}
+                  className="ml-4 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition duration-300"
+                >
+                  Admin Panel
+                </button>
+              )}
             </div>
           </div>
 
@@ -201,6 +213,19 @@ function Navbar() {
                 </div>
               </Link>
             ))}
+            {/* Button to Admin page if user is admin (mobile) */}
+            {userProfile?.role === "admin" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  router.push("/admin");
+                }}
+                className="w-full mt-2 px-3 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition duration-300"
+              >
+                Admin Panel
+              </button>
+            )}
 
             <div className="border-t my-2"></div>
 
